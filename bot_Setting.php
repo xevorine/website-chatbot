@@ -214,6 +214,66 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $_POST["action"] === "logout") {
 
 <script>
 // --------------------------
+//  AUTO REFRESH STATUS (Polling setiap 3 detik)
+// --------------------------
+async function checkBotStatus() {
+    try {
+        let res = await fetch("http://localhost:3000/api/sessions/default", {
+            headers: {
+                "X-Api-Key": "yoursecretkey",
+            }
+        });
+
+        if (res.status === 200) {
+            let data = await res.json();
+            let status = data?.status ? data.status.toUpperCase() : "DISCONNECTED";
+            let isLoggedIn = status === "WORKING";
+
+            // Update Status Display
+            let statusSpan = document.querySelector("span[class*='bg-green-500'], span[class*='bg-yellow-500']");
+            if (statusSpan) {
+                statusSpan.textContent = isLoggedIn ? "Online" : "Waiting";
+                statusSpan.className = isLoggedIn 
+                    ? "px-4 py-1 rounded-full text-white bg-green-500" 
+                    : "px-4 py-1 rounded-full text-white bg-yellow-500";
+            }
+
+            // Update WAHA Status
+            let wahaStatusSpan = document.querySelectorAll("span")[9]; // Adjust selector if needed
+            if (wahaStatusSpan) {
+                wahaStatusSpan.textContent = status;
+            }
+
+            // Toggle QR Box & Login Box
+            let qrBox = document.getElementById("qr-box");
+            let loginBox = document.getElementById("login-box");
+            
+            if (isLoggedIn) {
+                qrBox.classList.add("hidden");
+                loginBox.classList.remove("hidden");
+                
+                // Start uptime if just logged in
+                if (!loginTime) {
+                    loginTime = Date.now();
+                }
+            } else {
+                qrBox.classList.remove("hidden");
+                loginBox.classList.add("hidden");
+                loginTime = null;
+            }
+
+            console.log("✅ Status Updated:", status);
+        }
+    } catch (e) {
+        console.log("❌ Gagal check status:", e);
+    }
+}
+
+// Check status LANGSUNG saat page load + setiap 3 detik
+checkBotStatus();
+setInterval(checkBotStatus, 3000);
+
+// --------------------------
 //  QR Refresh Button
 // --------------------------
 document.getElementById("btn-refresh-qr").addEventListener("click", async () => {
