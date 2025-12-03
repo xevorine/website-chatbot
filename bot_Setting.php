@@ -133,18 +133,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $_POST["action"] === "logout") {
 
                 <div class="p-6 flex flex-col items-center justify-center space-y-4">
                     <!-- Profile Picture -->
-                    <div class="relative">
+                    <div>
                         <img id="profile-picture" src="https://via.placeholder.com/150" class="w-32 h-32 rounded-full shadow-lg border-4 border-blue-200 object-cover">
-                        <button id="btn-change-picture" class="absolute bottom-0 right-0 bg-blue-500 hover:bg-blue-600 text-white rounded-full p-2 shadow-lg" title="Ubah Foto">
-                            📷
-                        </button>
                     </div>
 
                     <!-- Profile Name -->
                     <div class="w-full text-center">
                         <p class="text-sm text-gray-500 mb-2">Nama Bot</p>
                         <button id="btn-edit-name" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold inline-flex items-center gap-2 transition">
-                             <span id="profile-name-display">-</span>
+                            <span id="profile-name-display">-</span>
                         </button>
                     </div>
 
@@ -153,11 +150,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $_POST["action"] === "logout") {
                         <p class="text-sm text-gray-500 mb-1">ID WhatsApp</p>
                         <p id="profile-id" class="bg-gray-100 px-3 py-2 rounded font-mono text-sm break-all">-</p>
                     </div>
-
-                    <!-- Delete Picture Button -->
-                    <button id="btn-delete-picture" class="w-full bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm">
-                        🗑️ Hapus Foto Profile
-                    </button>
                 </div>
             </div>
 
@@ -360,27 +352,48 @@ async function loadBotProfile() {
             }
         });
 
+        console.log("Profile Response Status:", res.status);
+        
         if (res.status === 200) {
             let data = await res.json();
+            console.log("📋 Full Profile Data:", data);
             
             // Update ID
-            document.getElementById("profile-id").textContent = data.id || "-";
-            
-            // Update Name Display
-            let nameDisplay = data.name || "Belum Ada Nama";
-            document.getElementById("profile-name-display").textContent = nameDisplay;
-            document.getElementById("modal-name-input").value = data.name || "";
-            
-            // Update Picture - Handle both data.picture and data.file.url format
-            let picUrl = data.picture || (data.file && data.file.url);
-            if (picUrl) {
-                document.getElementById("profile-picture").src = picUrl;
+            if (data.id) {
+                document.getElementById("profile-id").textContent = data.id;
+                console.log("✅ ID Set:", data.id);
             }
             
-            console.log("✅ Profile Loaded:", data);
+            // Update Name Display
+            if (data.name) {
+                document.getElementById("profile-name-display").textContent = data.name;
+                document.getElementById("modal-name-input").value = data.name;
+                console.log("✅ Name Set:", data.name);
+            }
+            
+            // Update Picture - Prioritas: data.picture
+            if (data.picture) {
+                console.log("📸 Picture URL from API:", data.picture);
+                
+                // Gunakan proxy atau langsung set
+                let imgElement = document.getElementById("profile-picture");
+                imgElement.src = data.picture;
+                imgElement.onerror = () => {
+                    console.log("⚠️ Foto gagal di-load, gunakan proxy");
+                    imgElement.src = "https://cors-anywhere.herokuapp.com/" + data.picture;
+                };
+                console.log("✅ Picture Set");
+            } else {
+                console.log("⚠️ Tidak ada field 'picture' di response");
+                console.log("Available fields:", Object.keys(data));
+            }
+            
+            console.log("✅ Profile Loaded Successfully");
+        } else {
+            console.log("❌ Profile API Error - Status:", res.status);
         }
     } catch (e) {
-        console.log("❌ Gagal load profile:", e);
+        console.error("❌ Gagal load profile:", e);
     }
 }
 
@@ -445,74 +458,6 @@ document.getElementById("btn-modal-save").addEventListener("click", async () => 
 document.getElementById("modal-name-input").addEventListener("keypress", (e) => {
     if (e.key === "Enter") {
         document.getElementById("btn-modal-save").click();
-    }
-});
-
-// --------------------------
-//  CHANGE BOT PICTURE
-// --------------------------
-document.getElementById("btn-change-picture").addEventListener("click", () => {
-    let input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/*";
-    input.onchange = async (e) => {
-        let file = e.target.files[0];
-        if (!file) return;
-
-        try {
-            let formData = new FormData();
-            formData.append("file", file);
-
-            console.log("📸 Uploading picture...", file.name);
-
-            let res = await fetch("http://10.147.19.163:3000/api/default/profile/picture", {
-                method: "PUT",
-                headers: {
-                    "X-Api-Key": "yoursecretkey",
-                },
-                body: formData
-            });
-
-            console.log("Response Status:", res.status);
-            let responseText = await res.text();
-            console.log("Response Body:", responseText);
-
-            if (res.status === 200 || res.status === 204) {
-                alert("✅ Foto berhasil diubah!");
-                setTimeout(() => loadBotProfile(), 500);
-            } else {
-                alert("❌ Gagal mengubah foto (Status: " + res.status + ")");
-            }
-        } catch (e) {
-            console.error("❌ ERROR:", e);
-            alert("❌ ERROR: " + e.message);
-        }
-    };
-    input.click();
-});
-
-// --------------------------
-//  DELETE BOT PICTURE
-// --------------------------
-document.getElementById("btn-delete-picture").addEventListener("click", async () => {
-    if (!confirm("⚠️ Yakin ingin menghapus foto profile?")) return;
-
-    try {
-        let res = await fetch("http://10.147.19.163:3000/api/default/profile/picture", {
-            method: "DELETE",
-            headers: {
-                "X-Api-Key": "yoursecretkey",
-            }
-        });
-
-        if (res.status === 200) {
-            alert("✅ Foto berhasil dihapus!");
-            document.getElementById("profile-picture").src = "https://via.placeholder.com/150";
-        } else {
-            alert("❌ Gagal menghapus foto");
-        }
-    } catch (e) {
-        alert("❌ ERROR: " + e.message);
     }
 });
 
