@@ -371,9 +371,10 @@ async function loadBotProfile() {
             document.getElementById("profile-name-display").textContent = nameDisplay;
             document.getElementById("modal-name-input").value = data.name || "";
             
-            // Update Picture
-            if (data.picture) {
-                document.getElementById("profile-picture").src = data.picture;
+            // Update Picture - Handle both data.picture and data.file.url format
+            let picUrl = data.picture || (data.file && data.file.url);
+            if (picUrl) {
+                document.getElementById("profile-picture").src = picUrl;
             }
             
             console.log("✅ Profile Loaded:", data);
@@ -462,6 +463,8 @@ document.getElementById("btn-change-picture").addEventListener("click", () => {
             let formData = new FormData();
             formData.append("file", file);
 
+            console.log("📸 Uploading picture...", file.name);
+
             let res = await fetch("http://10.147.19.163:3000/api/default/profile/picture", {
                 method: "PUT",
                 headers: {
@@ -470,13 +473,18 @@ document.getElementById("btn-change-picture").addEventListener("click", () => {
                 body: formData
             });
 
-            if (res.status === 200) {
+            console.log("Response Status:", res.status);
+            let responseText = await res.text();
+            console.log("Response Body:", responseText);
+
+            if (res.status === 200 || res.status === 204) {
                 alert("✅ Foto berhasil diubah!");
-                loadBotProfile();
+                setTimeout(() => loadBotProfile(), 500);
             } else {
-                alert("❌ Gagal mengubah foto");
+                alert("❌ Gagal mengubah foto (Status: " + res.status + ")");
             }
         } catch (e) {
+            console.error("❌ ERROR:", e);
             alert("❌ ERROR: " + e.message);
         }
     };
