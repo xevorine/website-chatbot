@@ -1,4 +1,19 @@
 <?php
+session_start();
+
+// Check if user is logged in
+if (!isset($_SESSION["user_id"])) {
+    header("Location: login.php");
+    exit();
+}
+
+// Handle logout
+if (isset($_GET["logout"])) {
+    session_destroy();
+    header("Location: login.php");
+    exit();
+}
+
 include __DIR__ . '/connection.php';
 
 // --- QUERY DATABASE ---
@@ -46,19 +61,30 @@ if (!$result) {
 <body class="m-0 p-0 box-border font-sans flex h-screen bg-gray-100">
 
 <!-- Sidebar -->
-<div class="w-64 bg-slate-800 text-white p-0 overflow-y-auto shadow-lg">
+<div class="w-64 bg-slate-800 text-white p-0 overflow-y-auto shadow-lg flex flex-col">
     <div class="p-5 text-center border-b-2 border-slate-700 mb-5">
         <h1 class="text-xl font-bold">Dashboard</h1>
     </div>
-    <nav>
+    <nav class="flex-1">
         <ul class="list-none m-0 p-0">
             <li class="m-0"><a href="index.php" class="block p-4 text-white no-underline transition-all duration-300 border-l-4 border-transparent hover:bg-slate-700 hover:border-l-blue-400 active:bg-blue-600 active:border-l-blue-400">📊 Daftar Warning</a></li>
-            <li class="m-0"><a href="#" class="block p-4 text-white no-underline transition-all duration-300 border-l-4 border-transparent hover:bg-slate-700 hover:border-l-blue-400">👥 User Management</a></li>
+            <li class="m-0"><a href="user_management.php" class="block p-4 text-white no-underline transition-all duration-300 border-l-4 border-transparent hover:bg-slate-700 hover:border-l-blue-400">👥 User Management</a></li>
             <li class="m-0"><a href="groups.php" class="block p-4 text-white no-underline transition-all duration-300 border-l-4 border-transparent hover:bg-slate-700 hover:border-l-blue-400">📁 Groups</a></li>
             <li class="m-0"><a href="bot_setting.php" class="block p-4 text-white no-underline transition-all duration-300 border-l-4 border-transparent hover:bg-slate-700 hover:border-l-blue-400">⚙️ Bot Settings</a></li>
             <li class="m-0"><a href="#" class="block p-4 text-white no-underline transition-all duration-300 border-l-4 border-transparent hover:bg-slate-700 hover:border-l-blue-400">📋 Reports</a></li>
         </ul>
     </nav>
+    
+    <!-- User Info & Logout -->
+    <div class="border-t-2 border-slate-700 p-4 space-y-3">
+        <div class="bg-slate-700 rounded-lg p-3 text-center">
+            <p class="text-xs text-slate-300">Logged in as</p>
+            <p class="text-sm font-bold text-white"><?= htmlspecialchars($_SESSION["username"] ?? "User") ?></p>
+        </div>
+        <a href="index.php?logout=true" class="block w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-3 rounded-lg text-center transition text-sm">
+            🚪 Logout
+        </a>
+    </div>
 </div>
 
 <!-- Main Content -->
