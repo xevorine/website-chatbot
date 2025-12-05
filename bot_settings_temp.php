@@ -94,7 +94,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $_POST["action"] === "logout") {
     <title>Bot Settings - Dashboard</title>
 </head>
 
-
 <body class="bg-gray-100 h-screen overflow-hidden">
 
     <div class="flex h-full">
