@@ -11,335 +11,354 @@ include __DIR__ . '/connection.php';
 ?>
 <!doctype html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <title>User Management - Dashboard</title>
 </head>
+
 <body class="m-0 p-0 box-border font-sans flex h-screen bg-gray-100">
 
-<!-- Sidebar -->
-<div class="w-64 bg-slate-800 text-white p-0 overflow-y-auto shadow-lg flex flex-col">
-    <div class="p-5 text-center border-b-2 border-slate-700 mb-5">
-        <h1 class="text-xl font-bold">Dashboard</h1>
+    <!-- Sidebar -->
+    <div class="w-64 bg-slate-800 text-white p-0 overflow-y-auto shadow-lg flex flex-col">
+        <div class="p-5 text-center border-b-2 border-slate-700 mb-5">
+            <h1 class="text-xl font-bold">Dashboard</h1>
+        </div>
+        <nav class="flex-1">
+            <ul class="list-none m-0 p-0">
+                <li class="m-0"><a href="index.php"
+                        class="block p-4 text-white no-underline transition-all duration-300 border-l-4 border-transparent hover:bg-slate-700 hover:border-l-blue-400">📊
+                        Daftar Warning</a></li>
+                <li class="m-0"><a href="user_management.php"
+                        class="block p-4 text-white no-underline transition-all duration-300 border-l-4 border-blue-400 bg-blue-600">👥
+                        User Management</a></li>
+                <li class="m-0"><a href="groups.php"
+                        class="block p-4 text-white no-underline transition-all duration-300 border-l-4 border-transparent hover:bg-slate-700 hover:border-l-blue-400">📁
+                        Groups</a></li>
+                <li class="m-0"><a href="bot_setting.php"
+                        class="block p-4 text-white no-underline transition-all duration-300 border-l-4 border-transparent hover:bg-slate-700 hover:border-l-blue-400">⚙️
+                        Bot Settings</a></li>
+                <li class="m-0"><a href="#"
+                        class="block p-4 text-white no-underline transition-all duration-300 border-l-4 border-transparent hover:bg-slate-700 hover:border-l-blue-400">📋
+                        Reports</a></li>
+            </ul>
+        </nav>
+
+        <!-- User Info & Logout -->
+        <div class="border-t-2 border-slate-700 p-4 space-y-3">
+            <div class="bg-slate-700 rounded-lg p-3 text-center">
+                <p class="text-xs text-slate-300">Logged in as</p>
+                <p class="text-sm font-bold text-white"><?= htmlspecialchars($_SESSION["username"] ?? "User") ?></p>
+            </div>
+            <a href="index.php?logout=true"
+                class="block w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-3 rounded-lg text-center transition text-sm">
+                🚪 Logout
+            </a>
+        </div>
     </div>
-    <nav class="flex-1">
-        <ul class="list-none m-0 p-0">
-            <li class="m-0"><a href="index.php" class="block p-4 text-white no-underline transition-all duration-300 border-l-4 border-transparent hover:bg-slate-700 hover:border-l-blue-400">📊 Daftar Warning</a></li>
-            <li class="m-0"><a href="user_management.php" class="block p-4 text-white no-underline transition-all duration-300 border-l-4 border-blue-400 bg-blue-600">👥 User Management</a></li>
-            <li class="m-0"><a href="groups.php" class="block p-4 text-white no-underline transition-all duration-300 border-l-4 border-transparent hover:bg-slate-700 hover:border-l-blue-400">📁 Groups</a></li>
-            <li class="m-0"><a href="bot_setting.php" class="block p-4 text-white no-underline transition-all duration-300 border-l-4 border-transparent hover:bg-slate-700 hover:border-l-blue-400">⚙️ Bot Settings</a></li>
-            <li class="m-0"><a href="#" class="block p-4 text-white no-underline transition-all duration-300 border-l-4 border-transparent hover:bg-slate-700 hover:border-l-blue-400">📋 Reports</a></li>
-        </ul>
-    </nav>
-    
-    <!-- User Info & Logout -->
-    <div class="border-t-2 border-slate-700 p-4 space-y-3">
-        <div class="bg-slate-700 rounded-lg p-3 text-center">
-            <p class="text-xs text-slate-300">Logged in as</p>
-            <p class="text-sm font-bold text-white"><?= htmlspecialchars($_SESSION["username"] ?? "User") ?></p>
-        </div>
-        <a href="index.php?logout=true" class="block w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-3 rounded-lg text-center transition text-sm">
-            🚪 Logout
-        </a>
-    </div>
-</div>
 
-<!-- Main Content -->
-<div class="flex-1 p-8 overflow-y-auto">
-    <div class="max-w-7xl mx-auto">
-        <!-- Header -->
-        <div class="mb-8">
-            <h1 class="text-4xl font-bold text-gray-800">👥 User Management</h1>
-            <p class="text-gray-600 mt-2">Kelola anggota grup WhatsApp</p>
-        </div>
-
-        <!-- Controls -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <div class="flex flex-col md:flex-row gap-4 items-end">
-                <div class="flex-1">
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Pilih Grup</label>
-                    <select id="group-select" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
-                        <option value="">-- Pilih Grup --</option>
-                    </select>
-                </div>
-                <button id="btn-refresh-groups" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg transition">
-                    🔄 Refresh Grup
-                </button>
-            </div>
-        </div>
-
-        <!-- Members Table -->
-        <div class="bg-white rounded-lg shadow-md overflow-hidden">
-            <div class="p-6 bg-gray-50 border-b">
-                <h2 class="text-lg font-bold">📋 Daftar Anggota</h2>
+    <!-- Main Content -->
+    <div class="flex-1 p-8 overflow-y-auto">
+        <div class="max-w-7xl mx-auto">
+            <!-- Header -->
+            <div class="mb-8">
+                <h1 class="text-4xl font-bold text-gray-800">👥 User Management</h1>
+                <p class="text-gray-600 mt-2">Kelola anggota grup WhatsApp</p>
             </div>
 
-            <div id="members-container" class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead class="bg-gray-100 border-b">
-                        <tr>
-                            <th class="px-6 py-3 text-left font-semibold text-gray-700">No</th>
-                            <th class="px-6 py-3 text-left font-semibold text-gray-700">Nama</th>
-                            <th class="px-6 py-3 text-left font-semibold text-gray-700">Nomor ID</th>
-                            <th class="px-6 py-3 text-left font-semibold text-gray-700">Grup ID</th>
-                            <th class="px-6 py-3 text-center font-semibold text-gray-700">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="members-table-body">
-                        <tr>
-                            <td colspan="5" class="px-6 py-8 text-center text-gray-500">
-                                Pilih grup untuk melihat anggota
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Add Member Section -->
-        <div class="bg-white rounded-lg shadow-md p-6 mt-6">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-bold">➕ Tambah Anggota</h3>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Nomor WhatsApp</label>
-                    <input type="text" id="input-phone" placeholder="Contoh: 6281234567890" 
-                        class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
-                    <p class="text-xs text-gray-500 mt-1">Tanpa simbol + atau -</p>
-                </div>
-                <div class="flex items-end">
-                    <button id="btn-add-member" class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition">
-                        ✅ Tambah Anggota
+            <!-- Controls -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <div class="flex flex-col md:flex-row gap-4 items-end">
+                    <div class="flex-1">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Pilih Grup</label>
+                        <select id="group-select"
+                            class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                            <option value="">-- Pilih Grup --</option>
+                        </select>
+                    </div>
+                    <button id="btn-refresh-groups"
+                        class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg transition">
+                        🔄 Refresh Grup
                     </button>
                 </div>
             </div>
+
+            <!-- Members Table -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="p-6 bg-gray-50 border-b">
+                    <h2 class="text-lg font-bold">📋 Daftar Anggota</h2>
+                </div>
+
+                <div id="members-container" class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-100 border-b">
+                            <tr>
+                                <th class="px-6 py-3 text-left font-semibold text-gray-700">No</th>
+                                <th class="px-6 py-3 text-left font-semibold text-gray-700">Nama</th>
+                                <th class="px-6 py-3 text-left font-semibold text-gray-700">Nomor ID</th>
+                                <th class="px-6 py-3 text-left font-semibold text-gray-700">Grup ID</th>
+                                <th class="px-6 py-3 text-center font-semibold text-gray-700">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="members-table-body">
+                            <tr>
+                                <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                                    Pilih grup untuk melihat anggota
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Add Member Section -->
+            <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold">➕ Tambah Anggota</h3>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Nomor WhatsApp</label>
+                        <input type="text" id="input-phone" placeholder="Contoh: 6281234567890"
+                            class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                        <p class="text-xs text-gray-500 mt-1">Tanpa simbol + atau -</p>
+                    </div>
+                    <div class="flex items-end">
+                        <button id="btn-add-member"
+                            class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition">
+                            ✅ Tambah Anggota
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- Modal Konfirmasi Kick -->
-<div id="modal-kick-confirm" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg shadow-xl max-w-sm w-96 p-6">
-        <h3 class="text-xl font-bold mb-4 text-gray-800">🚫 Konfirmasi Kick Anggota</h3>
-        
-        <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p class="text-sm text-gray-700">
-                Yakin ingin mengeluarkan anggota?
-            </p>
-            <p id="modal-member-info" class="text-sm font-semibold text-red-600 mt-2">-</p>
-        </div>
-        
-        <div class="flex gap-3">
-            <button id="btn-modal-cancel" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-lg transition">
-                Batal
-            </button>
-            <button id="btn-modal-confirm-kick" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition">
-                🚫 Kick
-            </button>
+    <!-- Modal Konfirmasi Kick -->
+    <div id="modal-kick-confirm"
+        class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-sm w-96 p-6">
+            <h3 class="text-xl font-bold mb-4 text-gray-800">🚫 Konfirmasi Kick Anggota</h3>
+
+            <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p class="text-sm text-gray-700">
+                    Yakin ingin mengeluarkan anggota?
+                </p>
+                <p id="modal-member-info" class="text-sm font-semibold text-red-600 mt-2">-</p>
+            </div>
+
+            <div class="flex gap-3">
+                <button id="btn-modal-cancel"
+                    class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-lg transition">
+                    Batal
+                </button>
+                <button id="btn-modal-confirm-kick"
+                    class="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition">
+                    🚫 Kick
+                </button>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- Loading Spinner -->
-<div id="loading-spinner" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-8 text-center">
-        <div class="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600 mx-auto"></div>
-        <p class="mt-4 text-gray-700 font-semibold">Memproses...</p>
+    <!-- Loading Spinner -->
+    <div id="loading-spinner" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-8 text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600 mx-auto"></div>
+            <p class="mt-4 text-gray-700 font-semibold">Memproses...</p>
+        </div>
     </div>
-</div>
-<button onclick="debugCheckMember()" class="bg-blue-500 text-white px-4 py-2 rounded mt-4">
-    🕵️ Cek Apakah Bot Melihat Member Ini?
-</button>
+    <button onclick="debugCheckMember()" class="bg-blue-500 text-white px-4 py-2 rounded mt-4">
+        🕵️ Cek Apakah Bot Melihat Member Ini?
+    </button>
 
-<script>
-async function debugCheckMember() {
-    let targetId = "6282133085243@c.us"; // Ganti dengan ID yang error tadi
-    
-    if(!currentGroupId) { alert("Pilih grup dulu"); return; }
+    <script>
+        async function debugCheckMember() {
+            let targetId = "6282133085243@c.us"; // Ganti dengan ID yang error tadi
 
-    console.log("Sedang bertanya ke Server Bot...");
-    
-    // Kita ambil data grup FRESH dari server
-    let res = await fetch(`${API_BASE}/${SESSION}/groups/${currentGroupId}`, {
-         headers: { "X-Api-Key": API_KEY }
-    });
-    
-    let data = await res.json();
-    let participants = data.participants || [];
-    
-    // Cari member di dalam data yang dikirim Bot
-    let found = participants.find(p => {
-        let pId = p.id._serialized || p.id;
-        return pId === targetId;
-    });
+            if (!currentGroupId) { alert("Pilih grup dulu"); return; }
 
-    if (found) {
-        alert("✅ ANEH: Bot melihat member ini ada di data grup via API. \nHarusnya Kick berhasil jika Bot Admin.");
-        console.log("Data Member:", found);
-    } else {
-        alert("❌ TERBUKTI: Bot TIDAK MELIHAT member ini di grup.\n\nDi HP Anda ada, tapi di data JSON API tidak ada.\n\nSOLUSI: RESTART SERVER API SEKARANG.");
-        console.log("Daftar member yang dilihat bot:", participants);
-    }
-}
-</script>
+            console.log("Sedang bertanya ke Server Bot...");
 
-<script>
-const API_BASE = "http://10.147.19.163:3000/api";
-const API_KEY = "yoursecretkey";
-const SESSION = "default";
+            // Kita ambil data grup FRESH dari server
+            let res = await fetch(`${API_BASE}/${SESSION}/groups/${currentGroupId}`, {
+                headers: { "X-Api-Key": API_KEY }
+            });
 
-let currentGroupId = null;
-let currentMemberId = null;
-let membersList = [];
-
-// --------------------------
-//  LOAD GROUPS (DIPERBAIKI)
-// --------------------------
-async function loadGroups() {
-    try {
-        showLoading(true);
-        
-        let res = await fetch(`${API_BASE}/${SESSION}/groups`, {
-            headers: {
-                "X-Api-Key": API_KEY,
-            }
-        });
-
-        if (res.status === 200) {
             let data = await res.json();
-            
-            let groupSelect = document.getElementById("group-select");
-            groupSelect.innerHTML = '<option value="">-- Pilih Grup --</option>';
-            
-            if (Array.isArray(data) && data.length > 0) {
-                data.forEach((group, idx) => {
-                    // --- BAGIAN INI DIPERBAIKI ---
-                    let groupId;
-                    
-                    // Cek apakah group.id adalah object dan punya _serialized
-                    if (group.id && typeof group.id === 'object' && group.id._serialized) {
-                        groupId = group.id._serialized;
-                    } 
-                    // Cek jika group.id adalah string biasa
-                    else if (typeof group.id === 'string') {
-                        groupId = group.id;
-                    }
-                    // Fallback ke struktur lain (misal top level serialized)
-                    else {
-                        groupId = group._serialized;
-                    }
-                    // -----------------------------
+            let participants = data.participants || [];
 
-                    let groupName = group.name || group.subject || groupId;
-                    
-                    let option = document.createElement("option");
-                    option.value = groupId; // Sekarang ini harusnya string ID@g.us
-                    option.textContent = groupName;
-                    groupSelect.appendChild(option);
-                });
+            // Cari member di dalam data yang dikirim Bot
+            let found = participants.find(p => {
+                let pId = p.id._serialized || p.id;
+                return pId === targetId;
+            });
+
+            if (found) {
+                alert("✅ ANEH: Bot melihat member ini ada di data grup via API. \nHarusnya Kick berhasil jika Bot Admin.");
+                console.log("Data Member:", found);
+            } else {
+                alert("❌ TERBUKTI: Bot TIDAK MELIHAT member ini di grup.\n\nDi HP Anda ada, tapi di data JSON API tidak ada.\n\nSOLUSI: RESTART SERVER API SEKARANG.");
+                console.log("Daftar member yang dilihat bot:", participants);
             }
         }
-        
-        showLoading(false);
-    } catch (e) {
-        alert("❌ Gagal memuat grup: " + e.message);
-        showLoading(false);
-    }
-}
+    </script>
 
-// --------------------------
-//  LOAD MEMBERS (DIPERBAIKI)
-// --------------------------
-async function loadMembers() {
-    if (!currentGroupId) {
-        document.getElementById("members-table-body").innerHTML = `
+    <script>
+        const API_BASE = "http://10.147.19.163:3000/api";
+        const API_KEY = "yoursecretkey";
+        const SESSION = "default";
+
+        let currentGroupId = null;
+        let currentMemberId = null;
+        let membersList = [];
+
+        // --------------------------
+        //  LOAD GROUPS (DIPERBAIKI)
+        // --------------------------
+        async function loadGroups() {
+            try {
+                showLoading(true);
+
+                let res = await fetch(`${API_BASE}/${SESSION}/groups`, {
+                    headers: {
+                        "X-Api-Key": API_KEY,
+                    }
+                });
+
+                if (res.status === 200) {
+                    let data = await res.json();
+
+                    let groupSelect = document.getElementById("group-select");
+                    groupSelect.innerHTML = '<option value="">-- Pilih Grup --</option>';
+
+                    if (Array.isArray(data) && data.length > 0) {
+                        data.forEach((group, idx) => {
+                            // --- BAGIAN INI DIPERBAIKI ---
+                            let groupId;
+
+                            // Cek apakah group.id adalah object dan punya _serialized
+                            if (group.id && typeof group.id === 'object' && group.id._serialized) {
+                                groupId = group.id._serialized;
+                            }
+                            // Cek jika group.id adalah string biasa
+                            else if (typeof group.id === 'string') {
+                                groupId = group.id;
+                            }
+                            // Fallback ke struktur lain (misal top level serialized)
+                            else {
+                                groupId = group._serialized;
+                            }
+                            // -----------------------------
+
+                            let groupName = group.name || group.subject || groupId;
+
+                            let option = document.createElement("option");
+                            option.value = groupId; // Sekarang ini harusnya string ID@g.us
+                            option.textContent = groupName;
+                            groupSelect.appendChild(option);
+                        });
+                    }
+                }
+
+                showLoading(false);
+            } catch (e) {
+                alert("❌ Gagal memuat grup: " + e.message);
+                showLoading(false);
+            }
+        }
+
+        // --------------------------
+        //  LOAD MEMBERS (DIPERBAIKI)
+        // --------------------------
+        async function loadMembers() {
+            if (!currentGroupId) {
+                document.getElementById("members-table-body").innerHTML = `
             <tr>
                 <td colspan="5" class="px-6 py-8 text-center text-gray-500">
                     Pilih grup untuk melihat anggota
                 </td>
             </tr>
         `;
-        return;
-    }
-
-    try {
-        showLoading(true);
-        
-        // Gunakan endpoint yang sesuai. Jika error v2, pakai yg biasa.
-        let res = await fetch(`${API_BASE}/${SESSION}/groups/${currentGroupId}/participants`, {
-            headers: {
-                "X-Api-Key": API_KEY,
+                return;
             }
-        });
 
-        if (res.status === 200) {
-            let data = await res.json();
-            
-            // Extract participants array
-            let participants = data.participants || data;
-            
-            if (!Array.isArray(participants)) {
-                participants = [participants];
-            }
-            
-            if (participants.length === 0) {
-                document.getElementById("members-table-body").innerHTML = `
+            try {
+                showLoading(true);
+
+                // Gunakan endpoint yang sesuai. Jika error v2, pakai yg biasa.
+                let res = await fetch(`${API_BASE}/${SESSION}/groups/${currentGroupId}/participants`, {
+                    headers: {
+                        "X-Api-Key": API_KEY,
+                    }
+                });
+
+                if (res.status === 200) {
+                    let data = await res.json();
+
+                    // Extract participants array
+                    let participants = data.participants || data;
+
+                    if (!Array.isArray(participants)) {
+                        participants = [participants];
+                    }
+
+                    if (participants.length === 0) {
+                        document.getElementById("members-table-body").innerHTML = `
                     <tr>
                         <td colspan="5" class="px-6 py-8 text-center text-gray-500">
                             Tidak ada anggota
                         </td>
                     </tr>
                 `;
-                showLoading(false);
-                return;
-            }
-
-            membersList = participants;
-
-            let membersHtml = "";
-            
-            // Loop data member
-            for (let i = 0; i < membersList.length; i++) {
-                let member = membersList[i];
-                let memberId = "";
-
-                // --- BAGIAN INI DIPERBAIKI (EKSTRAKSI ID) ---
-                if (member.id && typeof member.id === 'object' && member.id._serialized) {
-                    // Kasus 1: id berbentuk object { server:..., user:..., _serialized:... }
-                    memberId = member.id._serialized;
-                } else if (typeof member.id === 'string') {
-                    // Kasus 2: id berbentuk string langsung
-                    memberId = member.id;
-                } else {
-                    // Fallback
-                    memberId = "unknown_id";
-                    console.warn("Format ID tidak dikenali:", member);
-                }
-                // --------------------------------------------
-                
-                // Pastikan memberId adalah string sebelum lanjut
-                if (typeof memberId !== 'string') {
-                     memberId = String(memberId);
-                }
-
-                // Ambil info kontak (pastikan fungsi getContactInfo ada dan benar)
-                let displayName = "Loading...";
-                try {
-                    // Cek agar tidak request jika ID aneh
-                    if(memberId.includes('@')) {
-                        let contactInfo = await getContactInfo(memberId);
-                        displayName = contactInfo.name || contactInfo.pushname || contactInfo.number || "Unknown";
+                        showLoading(false);
+                        return;
                     }
-                } catch (err) {
-                    console.log(`Gagal ambil info kontak untuk ${memberId}`);
-                    displayName = memberId.split('@')[0]; // Fallback ke nomor HP
-                }
-                
-                membersHtml += `
+
+                    membersList = participants;
+
+                    let membersHtml = "";
+
+                    // Loop data member
+                    for (let i = 0; i < membersList.length; i++) {
+                        let member = membersList[i];
+                        let memberId = "";
+
+                        // --- BAGIAN INI DIPERBAIKI (EKSTRAKSI ID) ---
+                        if (member.id && typeof member.id === 'object' && member.id._serialized) {
+                            // Kasus 1: id berbentuk object { server:..., user:..., _serialized:... }
+                            memberId = member.id._serialized;
+                        } else if (typeof member.id === 'string') {
+                            // Kasus 2: id berbentuk string langsung
+                            memberId = member.id;
+                        } else {
+                            // Fallback
+                            memberId = "unknown_id";
+                            console.warn("Format ID tidak dikenali:", member);
+                        }
+                        // --------------------------------------------
+
+                        // Pastikan memberId adalah string sebelum lanjut
+                        if (typeof memberId !== 'string') {
+                            memberId = String(memberId);
+                        }
+
+                        // Ambil info kontak (pastikan fungsi getContactInfo ada dan benar)
+                        let displayName = "Loading...";
+                        try {
+                            // Cek agar tidak request jika ID aneh
+                            if (memberId.includes('@')) {
+                                let contactInfo = await getContactInfo(memberId);
+                                displayName = contactInfo.name || contactInfo.pushname || contactInfo.number || "Unknown";
+                            }
+                        } catch (err) {
+                            console.log(`Gagal ambil info kontak untuk ${memberId}`);
+                            displayName = memberId.split('@')[0]; // Fallback ke nomor HP
+                        }
+
+                        membersHtml += `
                     <tr class="border-b hover:bg-gray-50">
                         <td class="px-6 py-4">${i + 1}</td>
                         <td class="px-6 py-4 font-semibold">${displayName}</td>
@@ -353,252 +372,253 @@ async function loadMembers() {
                         </td>
                     </tr>
                 `;
-            }
-            
-            let tbody = document.getElementById("members-table-body");
-            tbody.innerHTML = membersHtml;
-        } else {
-            // Error handling response status
-            document.getElementById("members-table-body").innerHTML = `
+                    }
+
+                    let tbody = document.getElementById("members-table-body");
+                    tbody.innerHTML = membersHtml;
+                } else {
+                    // Error handling response status
+                    document.getElementById("members-table-body").innerHTML = `
                 <tr>
                     <td colspan="5" class="px-6 py-8 text-center text-gray-500">
                         ❌ Gagal memuat anggota (Status: ${res.status})
                     </td>
                 </tr>
             `;
-        }
-        
-        showLoading(false);
-    } catch (e) {
-        console.error(e);
-        document.getElementById("members-table-body").innerHTML = `
+                }
+
+                showLoading(false);
+            } catch (e) {
+                console.error(e);
+                document.getElementById("members-table-body").innerHTML = `
             <tr>
                 <td colspan="5" class="px-6 py-8 text-center text-gray-500">
                     ❌ Error: ${e.message}
                 </td>
             </tr>
         `;
-        showLoading(false);
-    }
-}
+                showLoading(false);
+            }
+        }
 
-// // --------------------------
-// //  GET CONTACT INFO
-// // --------------------------
-// async function getContactInfo(contactId) {
-//     try {
-//         let res = await fetch(`${API_BASE}/contacts?contactId=${contactId}&session=${SESSION}`, {
-//             headers: {
-//                 "X-Api-Key": API_KEY,
-//             }
-//         });
+        // // --------------------------
+        // //  GET CONTACT INFO
+        // // --------------------------
+        // async function getContactInfo(contactId) {
+        //     try {
+        //         let res = await fetch(`${API_BASE}/contacts?contactId=${contactId}&session=${SESSION}`, {
+        //             headers: {
+        //                 "X-Api-Key": API_KEY,
+        //             }
+        //         });
 
-//         if (res.status === 200) {
-//             let data = await res.json();
-//             return data;
-//         }
-        
-//         return { id: contactId, name: "Unknown" };
-//     } catch (e) {
-//         return { id: contactId, name: "Unknown" };
-//     }
-// }
-/// --------------------------
-//  KICK MEMBER (FIXED BODY FORMAT)
-// --------------------------
-async function kickMember(memberId) {
-    if (!currentGroupId || !memberId) {
-        alert("❌ Data tidak valid");
-        return;
-    }
+        //         if (res.status === 200) {
+        //             let data = await res.json();
+        //             return data;
+        //         }
 
-    // Bersihkan ID (tetap penting)
-    let cleanId = String(memberId).trim(); 
-    
-    // Pastikan ID lengkap (ada @c.us), jika cuma angka, tambahkan suffix
-    if (!cleanId.includes('@')) {
-        cleanId = cleanId + '@c.us';
-    }
+        //         return { id: contactId, name: "Unknown" };
+        //     } catch (e) {
+        //         return { id: contactId, name: "Unknown" };
+        //     }
+        // }
+        /// --------------------------
+        //  KICK MEMBER (FIXED BODY FORMAT)
+        // --------------------------
+        async function kickMember(memberId) {
+            if (!currentGroupId || !memberId) {
+                alert("❌ Data tidak valid");
+                return;
+            }
 
-    if (!confirm(`Yakin ingin mengeluarkan ${cleanId}?`)) {
-        return;
-    }
+            // Bersihkan ID (tetap penting)
+            let cleanId = String(memberId).trim();
 
-    showLoading(true);
+            // Pastikan ID lengkap (ada @c.us), jika cuma angka, tambahkan suffix
+            if (!cleanId.includes('@')) {
+                cleanId = cleanId + '@c.us';
+            }
 
-    try {
-        console.log(`🚀 Mengirim request kick untuk: ${cleanId}`);
+            if (!confirm(`Yakin ingin mengeluarkan ${cleanId}?`)) {
+                return;
+            }
 
-        // --- PEMBUATAN BODY SESUAI REQUEST ANDA ---
-        let payload = {
-            "participants": [
-                {
-                    "id": cleanId
-                }
-            ]
-        };
+            showLoading(true);
 
-        console.log("Payload dikirim:", JSON.stringify(payload));
-
-        let res = await fetch(`${API_BASE}/${SESSION}/groups/${currentGroupId}/participants/remove`, {
-            method: "POST",
-            headers: {
-                "X-Api-Key": API_KEY,
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload)
-        });
-
-        // Debug response
-        let responseText = await res.text();
-        console.log("Response Server:", responseText);
-
-        if (res.status === 200 || res.status === 204) {
-            alert("✅ Anggota berhasil dikeluarkan!");
-            document.getElementById("modal-kick-confirm").classList.add("hidden");
-            await loadMembers();
-        } else {
-            // Coba parsing error json jika ada
-            let errMsg = responseText;
             try {
-                let errJson = JSON.parse(responseText);
-                errMsg = errJson.message || responseText;
-            } catch(e) {}
+                console.log(`🚀 Mengirim request kick untuk: ${cleanId}`);
 
-            alert(`❌ Gagal Kick.\nStatus: ${res.status}\nPesan: ${errMsg}`);
+                // --- PEMBUATAN BODY SESUAI REQUEST ANDA ---
+                let payload = {
+                    "participants": [
+                        {
+                            "id": cleanId
+                        }
+                    ]
+                };
+
+                console.log("Payload dikirim:", JSON.stringify(payload));
+
+                let res = await fetch(`${API_BASE}/${SESSION}/groups/${currentGroupId}/participants/remove`, {
+                    method: "POST",
+                    headers: {
+                        "X-Api-Key": API_KEY,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                // Debug response
+                let responseText = await res.text();
+                console.log("Response Server:", responseText);
+
+                if (res.status === 200 || res.status === 204) {
+                    alert("✅ Anggota berhasil dikeluarkan!");
+                    document.getElementById("modal-kick-confirm").classList.add("hidden");
+                    await loadMembers();
+                } else {
+                    // Coba parsing error json jika ada
+                    let errMsg = responseText;
+                    try {
+                        let errJson = JSON.parse(responseText);
+                        errMsg = errJson.message || responseText;
+                    } catch (e) { }
+
+                    alert(`❌ Gagal Kick.\nStatus: ${res.status}\nPesan: ${errMsg}`);
+                }
+
+            } catch (e) {
+                console.error(e);
+                alert("❌ ERROR SYSTEM: " + e.message);
+            } finally {
+                showLoading(false);
+            }
         }
 
-    } catch (e) {
-        console.error(e);
-        alert("❌ ERROR SYSTEM: " + e.message);
-    } finally {
-        showLoading(false);
-    }
-}
+        // Fungsi Helper untuk Request API
+        async function sendKickRequest(targetId) {
+            try {
+                let payload = { participants: [targetId] };
 
-// Fungsi Helper untuk Request API
-async function sendKickRequest(targetId) {
-    try {
-        let payload = { participants: [targetId] };
-        
-        let res = await fetch(`${API_BASE}/${SESSION}/groups/${currentGroupId}/participants/remove`, {
-            method: "POST",
-            headers: {
-                "X-Api-Key": API_KEY,
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload)
+                let res = await fetch(`${API_BASE}/${SESSION}/groups/${currentGroupId}/participants/remove`, {
+                    method: "POST",
+                    headers: {
+                        "X-Api-Key": API_KEY,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                // Jika sukses 200 OK atau 204 No Content
+                if (res.status === 200 || res.status === 204) {
+                    return true;
+                }
+
+                // Baca error message untuk debugging
+                try {
+                    let json = await res.json();
+                    console.log(`Gagal Kick (${targetId}):`, json);
+                } catch (e) {
+                    console.log(`Gagal Kick (${targetId}): Status ${res.status}`);
+                }
+
+                return false;
+
+            } catch (e) {
+                console.error("Error Network:", e);
+                return false;
+            }
+        }
+        // --------------------------
+        //  ADD MEMBER
+        // --------------------------
+        document.getElementById("btn-add-member").addEventListener("click", async () => {
+            if (!currentGroupId) {
+                alert("⚠️ Pilih grup terlebih dahulu!");
+                return;
+            }
+
+            let phone = document.getElementById("input-phone").value.trim();
+
+            if (!phone) {
+                alert("⚠️ Masukkan nomor WhatsApp!");
+                return;
+            }
+
+            if (!/^\d{10,}$/.test(phone)) {
+                alert("⚠️ Format nomor tidak valid!");
+                return;
+            }
+
+            try {
+                showLoading(true);
+
+                let contactId = phone + "@c.us";
+
+                let res = await fetch(`${API_BASE}/${SESSION}/groups/${currentGroupId}/participants`, {
+                    method: "POST",
+                    headers: {
+                        "X-Api-Key": API_KEY,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        participants: [{ id: contactId }]
+                    })
+                });
+
+                if (res.status === 200 || res.status === 204) {
+                    alert("✅ Anggota berhasil ditambahkan!");
+                    document.getElementById("input-phone").value = "";
+                    loadMembers();
+                } else {
+                    alert("❌ Gagal menambah anggota. Pastikan nomor valid.");
+                }
+
+                showLoading(false);
+            } catch (e) {
+                alert("❌ ERROR: " + e.message);
+                showLoading(false);
+            }
         });
 
-        // Jika sukses 200 OK atau 204 No Content
-        if (res.status === 200 || res.status === 204) {
-            return true;
-        }
-
-        // Baca error message untuk debugging
-        try {
-            let json = await res.json();
-            console.log(`Gagal Kick (${targetId}):`, json);
-        } catch(e) { 
-            console.log(`Gagal Kick (${targetId}): Status ${res.status}`);
-        }
-
-        return false;
-
-    } catch (e) {
-        console.error("Error Network:", e);
-        return false;
-    }
-}
-// --------------------------
-//  ADD MEMBER
-// --------------------------
-document.getElementById("btn-add-member").addEventListener("click", async () => {
-    if (!currentGroupId) {
-        alert("⚠️ Pilih grup terlebih dahulu!");
-        return;
-    }
-
-    let phone = document.getElementById("input-phone").value.trim();
-    
-    if (!phone) {
-        alert("⚠️ Masukkan nomor WhatsApp!");
-        return;
-    }
-
-    if (!/^\d{10,}$/.test(phone)) {
-        alert("⚠️ Format nomor tidak valid!");
-        return;
-    }
-
-    try {
-        showLoading(true);
-        
-        let contactId = phone + "@c.us";
-        
-        let res = await fetch(`${API_BASE}/${SESSION}/groups/${currentGroupId}/participants`, {
-            method: "POST",
-            headers: {
-                "X-Api-Key": API_KEY,
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                participants: [{ id: contactId }]
-            })
+        // --------------------------
+        //  EVENT LISTENERS
+        // --------------------------
+        document.getElementById("group-select").addEventListener("change", (e) => {
+            currentGroupId = e.target.value;
+            if (currentGroupId) {
+                loadMembers();
+            }
         });
 
-        if (res.status === 200 || res.status === 204) {
-            alert("✅ Anggota berhasil ditambahkan!");
-            document.getElementById("input-phone").value = "";
-            loadMembers();
-        } else {
-            alert("❌ Gagal menambah anggota. Pastikan nomor valid.");
+        document.getElementById("btn-refresh-groups").addEventListener("click", () => {
+            loadGroups();
+        });
+
+        function confirmKickMember(memberId, memberName) {
+            currentMemberId = memberId;
+            document.getElementById("modal-member-info").textContent = `${memberName} (${memberId})`;
+            document.getElementById("modal-kick-confirm").classList.remove("hidden");
         }
-        
-        showLoading(false);
-    } catch (e) {
-        alert("❌ ERROR: " + e.message);
-        showLoading(false);
-    }
-});
 
-// --------------------------
-//  EVENT LISTENERS
-// --------------------------
-document.getElementById("group-select").addEventListener("change", (e) => {
-    currentGroupId = e.target.value;
-    if (currentGroupId) {
-        loadMembers();
-    }
-});
+        document.getElementById("btn-modal-cancel").addEventListener("click", () => {
+            document.getElementById("modal-kick-confirm").classList.add("hidden");
+        });
 
-document.getElementById("btn-refresh-groups").addEventListener("click", () => {
-    loadGroups();
-});
+        document.getElementById("btn-modal-confirm-kick").addEventListener("click", () => {
+            if (currentMemberId) {
+                kickMember(currentMemberId);
+            }
+        });
 
-function confirmKickMember(memberId, memberName) {
-    currentMemberId = memberId;
-    document.getElementById("modal-member-info").textContent = `${memberName} (${memberId})`;
-    document.getElementById("modal-kick-confirm").classList.remove("hidden");
-}
+        function showLoading(show) {
+            document.getElementById("loading-spinner").classList.toggle("hidden", !show);
+        }
 
-document.getElementById("btn-modal-cancel").addEventListener("click", () => {
-    document.getElementById("modal-kick-confirm").classList.add("hidden");
-});
-
-document.getElementById("btn-modal-confirm-kick").addEventListener("click", () => {
-    if (currentMemberId) {
-        kickMember(currentMemberId);
-    }
-});
-
-function showLoading(show) {
-    document.getElementById("loading-spinner").classList.toggle("hidden", !show);
-}
-
-// Load groups on page load
-loadGroups();
-</script>
+        // Load groups on page load
+        loadGroups();
+    </script>
 
 </body>
+
 </html>

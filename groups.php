@@ -1,4 +1,5 @@
 <?php
+session_start(); // Tambahkan session start agar tidak error saat ambil nama user di sidebar
 include __DIR__ . '/connection.php';
 
 // --- QUERY DATABASE ---
@@ -22,23 +23,8 @@ if (!$result) {
 </head>
 <body class="m-0 p-0 box-border font-sans flex h-screen bg-gray-100">
 
-<!-- Sidebar -->
-<div class="w-64 bg-slate-800 text-white p-0 overflow-y-auto shadow-lg">
-    <div class="p-5 text-center border-b-2 border-slate-700 mb-5">
-        <h1 class="text-xl font-bold">Dashboard</h1>
-    </div>
-    <nav>
-        <ul class="list-none m-0 p-0">
-            <li class="m-0"><a href="index.php" class="block p-4 text-white no-underline transition-all duration-300 border-l-4 border-transparent hover:bg-slate-700 hover:border-l-blue-400">📊 Daftar Warning</a></li>
-            <li class="m-0"><a href="groups.php" class="block p-4 text-white no-underline transition-all duration-300 border-l-4 border-transparent hover:bg-slate-700 hover:border-l-blue-400 bg-blue-600 border-l-blue-400">📁 Groups</a></li>
-            <li class="m-0"><a href="user_management.php" class="block p-4 text-white no-underline transition-all duration-300 border-l-4 border-transparent hover:bg-slate-700 hover:border-l-blue-400">👥 User Management</a></li>
-            <li class="m-0"><a href="bot_setting.php" class="block p-4 text-white no-underline transition-all duration-300 border-l-4 border-transparent hover:bg-slate-700 hover:border-l-blue-400">⚙️ Bot Settings</a></li>
-            <li class="m-0"><a href="#" class="block p-4 text-white no-underline transition-all duration-300 border-l-4 border-transparent hover:bg-slate-700 hover:border-l-blue-400">📋 Reports</a></li>
-        </ul>
-    </nav>
-</div>
+<?php include 'sidebar.php'; ?>
 
-<!-- Main Content -->
 <div class="flex-1 p-8 overflow-y-auto">
     <div class="mb-8 bg-gradient-to-r from-indigo-500 to-purple-600 p-8 rounded-lg shadow-lg relative overflow-hidden">
         <div class="absolute -top-1/2 -right-1/2 w-96 h-96 bg-white/10 rounded-full"></div>
@@ -46,7 +32,6 @@ if (!$result) {
         <p class="text-white/90 text-sm relative z-10 mt-2">Kelola dan pantau semua grup pengguna</p>
     </div>
     
-    <!-- Statistics -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
         <div class="bg-white p-5 rounded shadow">
             <div class="text-gray-700 text-sm">Total Groups</div>
@@ -124,7 +109,6 @@ if (!$result) {
                     <td class='p-3 border border-gray-300 text-left'>$avg_warning</td>
                     <td class='p-3 border border-gray-300 text-left'>$last_warning</td>
                     <td class='p-3 border border-gray-300 text-left'>
-                        <a class='inline-block px-3 py-1 text-sm bg-green-500 text-white rounded transition-opacity duration-300 hover:opacity-80 mr-1 no-underline' href='group_detail.php?id=$group_id'>Lihat</a>
                         <a class='inline-block px-3 py-1 text-sm bg-blue-500 text-white rounded transition-opacity duration-300 hover:opacity-80 mr-1 no-underline' href='edit_group.php?id=$group_id'>Edit</a>
                     </td>
                 </tr>";
