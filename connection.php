@@ -2,7 +2,7 @@
 $host = "10.147.19.163";
 $user = "n8nuser";
 $pass = "n8npass";
-$db   = "log_badwords";
+$db = "log_badwords";
 
 $conn = new mysqli($host, $user, $pass, $db);
 

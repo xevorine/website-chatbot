@@ -54,6 +54,7 @@ if (isset($_SESSION["user_id"])) {
 ?>
 <!doctype html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -69,69 +70,72 @@ if (isset($_SESSION["user_id"])) {
         }
     </style>
 </head>
+
 <body>
 
-<div class="w-full max-w-md">
-    <!-- Card -->
-    <div class="bg-white rounded-lg shadow-2xl overflow-hidden">
-        <!-- Header -->
-        <div class="bg-gradient-to-r from-purple-600 to-pink-600 p-8 text-center text-white">
-            <div class="text-5xl mb-3">🤖</div>
-            <h1 class="text-3xl font-bold">Bot Dashboard</h1>
-            <p class="text-purple-100 mt-2">WhatsApp Bot Management System</p>
-        </div>
+    <div class="w-full max-w-md">
+        <!-- Card -->
+        <div class="bg-white rounded-lg shadow-2xl overflow-hidden">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-purple-600 to-pink-600 p-8 text-center text-white">
+                <div class="text-5xl mb-3">🤖</div>
+                <h1 class="text-3xl font-bold">Bot Dashboard</h1>
+                <p class="text-purple-100 mt-2">WhatsApp Bot Management System</p>
+            </div>
 
-        <!-- Form -->
-        <div class="p-8">
-            <?php if ($error): ?>
-                <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded">
-                    <p class="text-red-700 font-semibold"><?= htmlspecialchars($error) ?></p>
+            <!-- Form -->
+            <div class="p-8">
+                <?php if ($error): ?>
+                    <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded">
+                        <p class="text-red-700 font-semibold"><?= htmlspecialchars($error) ?></p>
+                    </div>
+                <?php endif; ?>
+
+                <form method="POST" class="space-y-5">
+                    <!-- Username -->
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">👤 Username</label>
+                        <input type="text" name="username" placeholder="Masukkan username"
+                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 transition"
+                            required autofocus>
+                    </div>
+
+                    <!-- Password -->
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">🔐 Password</label>
+                        <input type="password" name="password" placeholder="Masukkan password"
+                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 transition"
+                            required>
+                    </div>
+
+                    <!-- Remember Me -->
+                    <div class="flex items-center">
+                        <input type="checkbox" id="remember" name="remember" class="w-4 h-4 text-purple-600 rounded">
+                        <label for="remember" class="ml-2 text-sm text-gray-600">Ingat saya</label>
+                    </div>
+
+                    <!-- Login Button -->
+                    <button type="submit"
+                        class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-4 rounded-lg transition transform hover:scale-105 active:scale-95">
+                        🚀 Login
+                    </button>
+                </form>
+
+                <!-- Footer -->
+                <div class="mt-6 text-center text-sm text-gray-500">
+                    <p>Demo Credentials:</p>
+                    <p class="font-mono text-gray-600 mt-1">Username: <strong>admin</strong></p>
+                    <p class="font-mono text-gray-600">Password: <strong>password123</strong></p>
                 </div>
-            <?php endif; ?>
-
-            <form method="POST" class="space-y-5">
-                <!-- Username -->
-                <div>
-                    <label class="block text-gray-700 font-semibold mb-2">👤 Username</label>
-                    <input type="text" name="username" placeholder="Masukkan username" 
-                        class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 transition" 
-                        required autofocus>
-                </div>
-
-                <!-- Password -->
-                <div>
-                    <label class="block text-gray-700 font-semibold mb-2">🔐 Password</label>
-                    <input type="password" name="password" placeholder="Masukkan password" 
-                        class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 transition" 
-                        required>
-                </div>
-
-                <!-- Remember Me -->
-                <div class="flex items-center">
-                    <input type="checkbox" id="remember" name="remember" class="w-4 h-4 text-purple-600 rounded">
-                    <label for="remember" class="ml-2 text-sm text-gray-600">Ingat saya</label>
-                </div>
-
-                <!-- Login Button -->
-                <button type="submit" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-4 rounded-lg transition transform hover:scale-105 active:scale-95">
-                    🚀 Login
-                </button>
-            </form>
-
-            <!-- Footer -->
-            <div class="mt-6 text-center text-sm text-gray-500">
-                <p>Demo Credentials:</p>
-                <p class="font-mono text-gray-600 mt-1">Username: <strong>admin</strong></p>
-                <p class="font-mono text-gray-600">Password: <strong>password123</strong></p>
             </div>
         </div>
-    </div>
 
-    <!-- Footer Text -->
-    <div class="text-center mt-6 text-white text-sm">
-        <p>© 2025 Bot Dashboard. All rights reserved.</p>
+        <!-- Footer Text -->
+        <div class="text-center mt-6 text-white text-sm">
+            <p>© 2025 Bot Dashboard. All rights reserved.</p>
+        </div>
     </div>
-</div>
 
 </body>
+
 </html>

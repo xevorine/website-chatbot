@@ -32,7 +32,7 @@ if ($table_check->num_rows == 0) {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     )";
     $conn->query($create_sql);
-    
+
     // Sync existing group_id
     $sync_sql = "INSERT IGNORE INTO `groups` (group_id, group_name) 
                  SELECT DISTINCT group_id, CONCAT('Group - ', group_id) FROM warnings";
@@ -52,40 +52,43 @@ if (!$result) {
 ?>
 <!doctype html>
 <html lang="en">
+
 <head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-	<title>Dashboard</title>
+    <title>Dashboard</title>
 </head>
+
 <body class="m-0 p-0 box-border font-sans flex h-screen bg-gray-100">
 
-<?php include 'sidebar.php'; ?>
+    <?php include 'sidebar.php'; ?>
 
 
-<div class="flex-1 p-8 overflow-y-auto">
-    <div class="mb-8 bg-gradient-to-r from-indigo-500 to-purple-600 p-8 rounded-lg shadow-lg relative overflow-hidden">
-        <div class="absolute -top-1/2 -right-1/2 w-96 h-96 bg-white/10 rounded-full"></div>
-        <h2 class="text-white text-4xl font-bold relative z-10 m-0 drop-shadow">📋 Daftar Warning</h2>
-        <p class="text-white/90 text-sm relative z-10 mt-2">Kelola dan pantau semua peringatan pengguna</p>
-    </div>
+    <div class="flex-1 p-8 overflow-y-auto">
+        <div
+            class="mb-8 bg-gradient-to-r from-indigo-500 to-purple-600 p-8 rounded-lg shadow-lg relative overflow-hidden">
+            <div class="absolute -top-1/2 -right-1/2 w-96 h-96 bg-white/10 rounded-full"></div>
+            <h2 class="text-white text-4xl font-bold relative z-10 m-0 drop-shadow">📋 Daftar Warning</h2>
+            <p class="text-white/90 text-sm relative z-10 mt-2">Kelola dan pantau semua peringatan pengguna</p>
+        </div>
 
-<table class="border-collapse w-full mt-5 bg-white shadow">
-    <tr>
-        <th class="p-3 border border-gray-300 text-left bg-slate-700 text-white font-bold">ID</th>
-        <th class="p-3 border border-gray-300 text-left bg-slate-700 text-white font-bold">Author</th>
-        <th class="p-3 border border-gray-300 text-left bg-slate-700 text-white font-bold">User ID</th>
-        <th class="p-3 border border-gray-300 text-left bg-slate-700 text-white font-bold">Nama Group</th>
-        <th class="p-3 border border-gray-300 text-left bg-slate-700 text-white font-bold">Warning Count</th>
-        <th class="p-3 border border-gray-300 text-left bg-slate-700 text-white font-bold">Last Warning At</th>
-        <th class="p-3 border border-gray-300 text-left bg-slate-700 text-white font-bold">Message</th>
-        <th class="p-3 border border-gray-300 text-left bg-slate-700 text-white font-bold">Aksi</th>
-    </tr>
+        <table class="border-collapse w-full mt-5 bg-white shadow">
+            <tr>
+                <th class="p-3 border border-gray-300 text-left bg-slate-700 text-white font-bold">ID</th>
+                <th class="p-3 border border-gray-300 text-left bg-slate-700 text-white font-bold">Author</th>
+                <th class="p-3 border border-gray-300 text-left bg-slate-700 text-white font-bold">User ID</th>
+                <th class="p-3 border border-gray-300 text-left bg-slate-700 text-white font-bold">Nama Group</th>
+                <th class="p-3 border border-gray-300 text-left bg-slate-700 text-white font-bold">Warning Count</th>
+                <th class="p-3 border border-gray-300 text-left bg-slate-700 text-white font-bold">Last Warning At</th>
+                <th class="p-3 border border-gray-300 text-left bg-slate-700 text-white font-bold">Message</th>
+                <th class="p-3 border border-gray-300 text-left bg-slate-700 text-white font-bold">Aksi</th>
+            </tr>
 
-    <?php
-    if ($result->num_rows > 0) {
-        while ($row = $result->fetch_assoc()) {
-            echo "<tr class='hover:bg-gray-100'>
+            <?php
+            if ($result->num_rows > 0) {
+                while ($row = $result->fetch_assoc()) {
+                    echo "<tr class='hover:bg-gray-100'>
                 <td class='p-3 border border-gray-300 text-left'>{$row['id']}</td>
                 <td class='p-3 border border-gray-300 text-left'>{$row['author']}</td>
                 <td class='p-3 border border-gray-300 text-left'>{$row['user_id']}</td>
@@ -98,15 +101,16 @@ if (!$result) {
                     <a class='inline-block px-3 py-1 text-sm bg-red-500 text-white rounded transition-opacity duration-300 hover:opacity-80 mr-1 no-underline' href='delete.php?id={$row['id']}' onclick=\"return confirm('Yakin mau hapus data ini?');\">Delete</a>
                 </td>
             </tr>";
-        }
-    } else {
-        echo "<tr><td colspan='8' class='text-center p-3'>Tidak ada data</td></tr>";
-    }
+                }
+            } else {
+                echo "<tr><td colspan='8' class='text-center p-3'>Tidak ada data</td></tr>";
+            }
 
-    $conn->close();
-    ?>
-</table>
-</div>
+            $conn->close();
+            ?>
+        </table>
+    </div>
 
 </body>
+
 </html>
