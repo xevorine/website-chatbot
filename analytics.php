@@ -109,7 +109,7 @@ while ($row = $res_heatmap->fetch_assoc()) {
                 </div>
 
                 <div class="bg-white rounded-lg shadow p-6">
-                    <h3 class="text-lg font-bold text-gray-700 mb-4 border-b pb-2">📢 Grup Paling "Ramai"</h3>
+                    <h3 class="text-lg font-bold text-gray-700 mb-4 border-b pb-2">📢 Grup Paling "Toxic"</h3>
                     <ul class="space-y-4">
                         <?php
                         if ($res_top_groups->num_rows > 0) {

@@ -1,5 +1,5 @@
 <?php
-$host = "10.147.19.163";
+$host = "10.242.61.248";
 $user = "n8nuser";
 $pass = "n8npass";
 $db = "log_badwords";

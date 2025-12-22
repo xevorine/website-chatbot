@@ -12,7 +12,7 @@ session_start();
 ----------------------------------------- */
 function getBotStatus()
 {
-    $url = "http://10.147.19.163:3000/api/sessions/default";
+    $url = "http://10.242.61.248:3000/api/sessions/default";
 
     $opts = [
         "http" => [
@@ -59,7 +59,7 @@ $bot_login_time = $_SESSION["bot_login_time"] ?? null;
     4. LOGOUT BUTTON HANDLER
 ----------------------------------------- */
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["action"] === "logout") {
-    $url = "http://10.147.19.163:3000/api/sessions/default/logout";
+    $url = "http://10.242.61.248:3000/api/sessions/default/logout";
 
     $ch = curl_init($url);
     curl_setopt_array($ch, [
@@ -254,5 +254,3 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["
     </div>
 
     <script>
-        // (SCRIPT SAMA PERSIS DENGAN SEBELUMNYA - Copy dari file bot_setting.php kamu yang lama)
-        // Agar tidak kepanjangan, bagian script bisa kamu ambil

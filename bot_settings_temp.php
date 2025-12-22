@@ -12,7 +12,7 @@ session_start();
 ----------------------------------------- */
 function getBotStatus()
 {
-    $url = "http://10.147.19.163:3000/api/sessions/default";
+    $url = "http://10.242.61.248:3000/api/sessions/default";
 
     $opts = [
         "http" => [
@@ -61,7 +61,7 @@ $bot_login_time = $_SESSION["bot_login_time"] ?? null;
 ----------------------------------------- */
 if ($_SERVER["REQUEST_METHOD"] === "POST" && $_POST["action"] === "logout") {
     // Call WAHA logout
-    $url = "http://10.147.19.163:3000/api/sessions/default/logout";
+    $url = "http://10.242.61.248:3000/api/sessions/default/logout";
 
     $ch = curl_init($url);
     curl_setopt_array($ch, [
@@ -301,7 +301,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $_POST["action"] === "logout") {
         // --------------------------
         async function checkBotStatus() {
             try {
-                let res = await fetch("http://10.147.19.163:3000/api/sessions/default", {
+                let res = await fetch("http://10.242.61.248:3000/api/sessions/default", {
                     headers: {
                         "X-Api-Key": "yoursecretkey",
                     }
@@ -363,7 +363,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $_POST["action"] === "logout") {
         // --------------------------
         async function loadBotProfile() {
             try {
-                let res = await fetch("http://10.147.19.163:3000/api/default/profile", {
+                let res = await fetch("http://10.242.61.248:3000/api/default/profile", {
                     headers: {
                         "X-Api-Key": "yoursecretkey",
                     }
@@ -449,7 +449,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $_POST["action"] === "logout") {
             }
 
             try {
-                let res = await fetch("http://10.147.19.163:3000/api/default/profile/name", {
+                let res = await fetch("http://10.242.61.248:3000/api/default/profile/name", {
                     method: "PUT",
                     headers: {
                         "X-Api-Key": "yoursecretkey",
@@ -495,7 +495,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $_POST["action"] === "logout") {
             img.classList.add("hidden");
 
             try {
-                let res = await fetch("http://10.147.19.163:3000/api/default/auth/qr", {
+                let res = await fetch("http://10.242.61.248:3000/api/default/auth/qr", {
                     headers: {
                         "X-Api-Key": "yoursecretkey",
                         "accept": "image/png"
@@ -546,5 +546,4 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $_POST["action"] === "logout") {
     </script>
 
 </body>
-
 </html>
