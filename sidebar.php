@@ -32,12 +32,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     ⚙️ Bot Settings
                 </a>
             </li>
-            <!-- <li>
+            <li>
                 <a href="user_management.php"
                     class="block px-6 py-3 hover:bg-slate-700 border-l-4 transition <?php echo $current_page == 'user_management.php' ? 'bg-blue-600 border-blue-400' : 'border-transparent hover:border-blue-400'; ?>">
                     👥 User Management
                 </a>
-        </ul> -->
+        </ul>
     </nav>
 
     <div class="border-t border-slate-700 p-4 space-y-3">

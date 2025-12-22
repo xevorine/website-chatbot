@@ -1,4 +1,4 @@
-<!-- <?php
+<?php
 session_start();
 
 // Check if user is logged in
@@ -356,4 +356,4 @@ include __DIR__ . '/connection.php';
     </script>
 
 </body>
-</html> -->
+</html>
