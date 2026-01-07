@@ -1,157 +1,216 @@
-<?php ?>
+<?php
+session_start();
+
+// Cek Login Dashboard
+if (!isset($_SESSION["user_id"])) {
+    header("Location: login.php");
+    exit();
+}
+
+include __DIR__ . '/connection.php';
+
+// --- CONFIG API ---
+$api_base = "https://bwaha.004090.xyz/api";
+$api_key = "lewishamilton"; // Sesuaikan dengan API Key WAHA Anda
+$session = "default";
+
+// --- FUNGSI REQUEST PHP (Safe Mode - Tanpa cURL) ---
+function getWahaStatus($url, $key)
+{
+    $opts = [
+        "http" => [
+            "method" => "GET",
+            "header" => "X-Api-Key: $key\r\nAccept: application/json\r\n",
+            "timeout" => 5,
+            "ignore_errors" => true
+        ],
+        "ssl" => [
+            "verify_peer" => false,
+            "verify_peer_name" => false
+        ]
+    ];
+    $context = stream_context_create($opts);
+    $response = @file_get_contents($url, false, $context);
+
+    if ($response === false)
+        return null;
+    return json_decode($response, true);
+}
+
+// Cek Status Awal saat Halaman Dimuat
+$data = getWahaStatus("$api_base/sessions/$session", $api_key);
+$bot_state = "DISCONNECTED";
+$isLoggedIn = false;
+
+if ($data) {
+    $bot_state = strtoupper($data['status'] ?? 'UNKNOWN');
+    if ($bot_state == 'WORKING') {
+        $isLoggedIn = true;
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>WAHA Login</title>
+    <title>WAHA Login - Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-  </head>
+</head>
 
-  <body class="m-0 p-0 box-border font-sans flex h-screen bg-gray-100">
+<body class="m-0 p-0 box-border font-sans flex h-screen bg-gray-100">
+
     <?php include 'sidebar.php'; ?>
 
     <div class="flex-1 p-8 overflow-y-auto">
-      <div class="mb-8 bg-gradient-to-r from-indigo-500 to-purple-600 p-8 rounded-lg shadow-lg relative overflow-hidden">
-        <div class="absolute -top-1/2 -right-1/2 w-96 h-96 bg-white/10 rounded-full"></div>
-        <h2 class="text-white text-4xl font-bold relative z-10 drop-shadow">⚙️ WAHA Login</h2>
-        <p class="text-white/90 text-sm relative z-10 mt-2">Pantau status sesi WAHA dan pairing QR</p>
-      </div>
 
-      <div class="bg-white rounded-lg shadow p-6 space-y-4 max-w-2xl mx-auto">
-        <h2 class="text-xl font-semibold">WAHA Login</h2>
+        <div
+            class="mb-8 bg-gradient-to-r from-indigo-500 to-purple-600 p-8 rounded-lg shadow-lg relative overflow-hidden">
+            <div class="absolute -top-1/2 -right-1/2 w-96 h-96 bg-white/10 rounded-full"></div>
+            <h2 class="text-white text-4xl font-bold relative z-10 drop-shadow">⚙️ WAHA Connection</h2>
+            <p class="text-white/90 text-sm relative z-10 mt-2">Pantau status sesi WAHA dan pairing QR</p>
+        </div>
 
-      <!-- STATUS -->
-      <div id="status" class="text-sm font-medium text-gray-700">Checking session...</div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-      <!-- ACTION -->
-      <button id="refresh" class="w-full rounded-md bg-blue-500 hover:bg-blue-600 text-sm font-semibold text-white py-2 px-4 transition">🔄 Refresh QR</button>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="border-b pb-4 mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">📱 Scan QR Code</h3>
+                </div>
 
-      <!-- QR -->
-      <div class="flex justify-center">
-        <img id="qr" class="hidden max-w-[260px] border rounded-md p-3" alt="QR Code" />
-      </div>
+                <div id="view-loggedin"
+                    class="<?= $isLoggedIn ? '' : 'hidden' ?> flex flex-col items-center justify-center py-10">
+                    <div
+                        class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-4 animate-bounce">
+                        <span class="text-4xl">✅</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-green-700">Bot Terhubung</h3>
+                    <p class="text-gray-500 mt-2 text-center">Sesi WhatsApp aktif.<br>Bot siap menerima & mengirim
+                        pesan.</p>
+                </div>
 
-      <!-- PAIRING -->
-      <div id="pairing" class="hidden border-t pt-4 space-y-2">
-        <input id="phone" placeholder="628xxxxxxxxxx" class="w-full border rounded-md px-3 py-2 text-sm" />
-        <button id="requestCode" class="w-full bg-green-500 hover:bg-green-600 text-white rounded-md px-4 py-2 text-sm font-semibold transition">Request Code</button>
-      </div>
+                <div id="view-login" class="<?= $isLoggedIn ? 'hidden' : '' ?> flex flex-col items-center">
+                    <div id="status-text"
+                        class="text-sm font-medium text-orange-600 mb-4 bg-orange-50 px-3 py-1 rounded-full animate-pulse">
+                        Menunggu Scan QR...
+                    </div>
 
-      <pre id="log" class="text-xs text-red-600"></pre>
-    </div>
+                    <div
+                        class="relative w-64 h-64 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center mb-4 overflow-hidden">
+                        <img id="qr" class="hidden w-full h-full object-contain p-2" alt="QR Code" />
+                        <span id="qr-placeholder" class="text-gray-400 text-xs text-center px-4">Klik Refresh untuk
+                            memuat QR</span>
 
-    <script>
-      const API_KEY = "0b08c9d2a8f6405d87c83538bc3892bc";
-      const BASE_URL = "https://bwaha.004090.xyz";
-      const SESSION = "default";
+                            
+                    </div>
+                    <div>
+                        <span id="text-state" class="hidden font-mono text-sm text-gray-800 bg-gray-100 px-2 py-1 rounded">
+                                <?= $bot_state ?>
+                            </span>
+                    </div>
 
-      let loginWatcher = null;
+                    <button id="refresh"
+                        class="w-full max-w-xs rounded-md bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 transition mb-6 shadow">
+                        🔄 Refresh QR
+                    </button>
+                    <pre id="log" class="text-xs text-red-600 mt-2 text-center w-full hidden"></pre>
+                </div>
+            </div>
+        </div>
 
-      const statusEl = document.getElementById("status");
-      const qrImg = document.getElementById("qr");
-      const pairingBox = document.getElementById("pairing");
-      const refreshBtn = document.getElementById("refresh");
-      const phoneInput = document.getElementById("phone");
-      const requestBtn = document.getElementById("requestCode");
-      const log = document.getElementById("log");
+        <script>
+            const API_KEY = "<?= $api_key ?>";
+            const BASE_URL = "<?= $api_base ?>";
+            const SESSION = "<?= $session ?>";
 
-      async function checkSession() {
-        const res = await fetch(`${BASE_URL}/api/sessions/${SESSION}`, {
-          headers: { "X-Api-Key": API_KEY },
-        });
-        if (!res.ok) throw new Error("Session API error");
-        return res.json();
-      }
+            let loginWatcher = null;
 
-      async function loadQR() {
-        const res = await fetch(`${BASE_URL}/api/${SESSION}/auth/qr`, {
-          headers: {
-            Accept: "image/png",
-            "X-Api-Key": API_KEY,
-          },
-        });
-        if (!res.ok) throw new Error("QR API error");
+            // Elements
+            const viewLogin = document.getElementById("view-login");
+            const viewLoggedIn = document.getElementById("view-loggedin");
+            const profileCard = document.getElementById("profile-card");
 
-        const blob = await res.blob();
-        qrImg.src = URL.createObjectURL(blob);
-        qrImg.classList.remove("hidden");
-      }
+            const badgeStatus = document.getElementById("badge-status");
+            const textState = document.getElementById("text-state");
+            const statusText = document.getElementById("status-text");
 
-      async function requestPairingCode() {
-        const phoneNumber = phoneInput.value.trim();
-        if (!phoneNumber) {
-          log.textContent = "Phone number required";
-          return;
-        }
+            const qrImg = document.getElementById("qr");
+            const qrPlaceholder = document.getElementById("qr-placeholder");
+            const log = document.getElementById("log");
 
-        await fetch(`${BASE_URL}/api/${SESSION}/auth/request-code`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Api-Key": API_KEY,
-          },
-          body: JSON.stringify({ phoneNumber }),
-        });
-
-        log.textContent = "Pairing code sent. Waiting for login...";
-        startLoginWatcher();
-      }
-
-      function startLoginWatcher() {
-        if (loginWatcher) return;
-
-        loginWatcher = setInterval(async () => {
-          try {
-            const session = await checkSession();
-            if (session.status === "WORKING") {
-              stopLoginWatcher();
-              showLoggedIn();
+            // --- 1. CEK SESSION ---
+            async function checkSession() {
+                try {
+                    const res = await fetch(`${BASE_URL}/sessions/${SESSION}`, {
+                        headers: { "X-Api-Key": API_KEY }
+                    });
+                    if (!res.ok) throw new Error("API Error");
+                    return await res.json();
+                } catch (e) {
+                    console.error(e);
+                    return { status: "ERROR" };
+                }
             }
-          } catch {}
-        }, 5000);
-      }
 
-      function stopLoginWatcher() {
-        clearInterval(loginWatcher);
-        loginWatcher = null;
-      }
+            // --- 2. UPDATE UI ---
+            function updateUI(status) {
+                textState.textContent = status;
 
-      function showLoggedIn() {
-        statusEl.textContent = "✅ SUDAH LOGIN";
-        statusEl.className = "text-sm font-medium text-green-600";
-        qrImg.classList.add("hidden");
-        pairingBox.classList.add("hidden");
-        refreshBtn.classList.add("hidden");
-      }
+                if (status === "WORKING") {
+                    // LOGGED IN
+                    viewLogin.classList.add("hidden");
+                    viewLoggedIn.classList.remove("hidden");
+                    profileCard.classList.remove("hidden");
 
-      async function refresh() {
-        log.textContent = "";
-        qrImg.classList.add("hidden");
-        pairingBox.classList.add("hidden");
-        statusEl.textContent = "Checking session...";
+                    badgeStatus.textContent = "ONLINE";
+                    badgeStatus.className = "px-3 py-1 rounded-full text-xs font-bold text-white bg-green-500";
 
-        const session = await checkSession();
-        const status = session.status?.toUpperCase();
+                    loadBotProfile();
+                    stopLoginWatcher();
+                } else {
+                    // LOGGED OUT
+                    viewLogin.classList.remove("hidden");
+                    viewLoggedIn.classList.add("hidden");
+                    profileCard.classList.add("hidden");
 
-        if (status === "WORKING") {
-          showLoggedIn();
-          return;
-        }
+                    badgeStatus.textContent = "WAITING";
+                    badgeStatus.className = "px-3 py-1 rounded-full text-xs font-bold text-white bg-yellow-500";
 
-        if (status.includes("SCAN_QR")) {
-          statusEl.textContent = "🔳 BELUM LOGIN — Scan QR / Code Pairing";
-          statusEl.className = "text-sm font-medium text-orange-600";
-          pairingBox.classList.remove("hidden");
-          await loadQR();
-          startLoginWatcher(); // ⬅️ WATCH ONLY AFTER QR SHOWN
-        }
-      }
+                    if (status.includes("SCAN_QR")) {
+                        statusText.textContent = "Silakan Scan QR Code di bawah";
+                        if (qrImg.classList.contains("hidden")) loadQR();
+                        startLoginWatcher();
+                    } else {
+                        statusText.textContent = "Status: " + status;
+                    }
+                }
+            }
 
-      refreshBtn.addEventListener("click", refresh);
-      requestBtn.addEventListener("click", requestPairingCode);
+            // --- 3. LOAD QR ---
+            async function loadQR() {
+                try {
+                    qrPlaceholder.textContent = "Loading QR...";
+                    const res = await fetch(`${BASE_URL}/${SESSION}/auth/qr`, {
+                        headers: { Accept: "image/png", "X-Api-Key": API_KEY }
+                    });
+                    if (!res.ok) throw new Error("Gagal QR");
 
-      refresh();
-    </script>
-  </body>
+                    const blob = await res.blob();
+                    qrImg.src = URL.createObjectURL(blob);
+                    qrImg.classList.remove("hidden");
+                    qrPlaceholder.classList.add("hidden");
+                } catch (e) {
+                    qrPlaceholder.textContent = "Gagal memuat QR. Klik Refresh.";
+                }
+            }
+            // Cek status saat pertama kali load via JS juga (untuk update realtime)
+            checkSession().then(data => {
+                const status = data.status ? data.status.toUpperCase() : "STOPPED";
+                updateUI(status);
+            });
+
+        </script>
+</body>
+
 </html>

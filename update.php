@@ -1,26 +1,34 @@
 <?php
 include __DIR__ . '/connection.php';
 
-$id = $_POST['id'];
-$user_id = $_POST['user_id'];
-$group_id = $_POST['group_id'];
-$warning_count = $_POST['warning_count'];
-$last_warning_at = $_POST['last_warning_at'];
-$message = $_POST['message'];
-$author = $_POST['author'];
+$id = (int)($_POST['id'] ?? 0);
 
-$sql = "UPDATE warnings SET 
-    user_id='$user_id',
-    group_id='$group_id',
-    warning_count='$warning_count',
-    last_warning_at='$last_warning_at',
-    message='$message',
-    author='$author'
-    WHERE id=$id";
+$message = $_POST['message'] ?? null;
+$author  = $_POST['author'] ?? null;
 
-if ($conn->query($sql)) {
-    header("Location: index.php");
-} else {
-    echo "Error: " . $conn->error;
+$sql = "
+UPDATE warnings SET
+    message = ?,
+    author = ?
+WHERE id = ?
+";
+
+$stmt = $conn->prepare($sql);
+
+if (!$stmt) {
+    die("Prepare failed: " . $conn->error);
 }
-?>
+
+$stmt->bind_param(
+    "ssi",
+    $message,
+    $author,
+    $id
+);
+
+if ($stmt->execute()) {
+    header("Location: index.php");
+    exit;
+} else {
+    echo "Execute error: " . $stmt->error;
+}

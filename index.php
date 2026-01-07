@@ -1,53 +1,45 @@
 <?php
 session_start();
 
-// Check if user is logged in
 if (!isset($_SESSION["user_id"])) {
     header("Location: login.php");
     exit();
 }
 
-// Handle logout
 if (isset($_GET["logout"])) {
     session_destroy();
     header("Location: login.php");
     exit();
 }
 
-include __DIR__ . '/connection.php';
+require __DIR__ . "/connection.php";
 
-// --- QUERY DATABASE & TABLE SETUP ---
-$check_table = "SHOW TABLES LIKE 'groups'";
-$table_check = $conn->query($check_table);
+/**
+ * 1️⃣ Ambil semua warnings
+ */
+$sql = "SELECT id, author, user_id, group_id, warning_count, last_warning_at, message
+        FROM warnings
+        ORDER BY id DESC";
 
-if ($table_check->num_rows == 0) {
-    $create_sql = "CREATE TABLE `groups` (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        group_id VARCHAR(255) NOT NULL UNIQUE,
-        group_name VARCHAR(255) NOT NULL,
-        description TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    )";
-    $conn->query($create_sql);
-    
-    $sync_sql = "INSERT IGNORE INTO `groups` (group_id, group_name) 
-                 SELECT DISTINCT group_id, CONCAT('Group - ', group_id) FROM warnings";
-    $conn->query($sync_sql);
-}
-
-$sql = "SELECT w.id, w.user_id, w.group_id, g.group_name, w.warning_count, w.last_warning_at, w.message, w.author 
-        FROM warnings w 
-        LEFT JOIN `groups` g ON w.group_id = g.group_id 
-        ORDER BY w.id DESC";
 $result = $conn->query($sql);
-
 if (!$result) {
     die("Query Error: " . $conn->error);
 }
+
+/**
+ * 2️⃣ Ambil DISTINCT group_id (untuk mapping JS)
+ */
+$groupIds = [];
+$q = $conn->query(
+    "SELECT DISTINCT group_id FROM warnings WHERE group_id IS NOT NULL AND group_id != ''"
+);
+while ($r = $q->fetch_assoc()) {
+    $groupIds[] = $r["group_id"];
+}
 ?>
 <!doctype html>
-<html lang="en">
+<html lang="id">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -55,127 +47,185 @@ if (!$result) {
     <title>Dashboard Warning</title>
 </head>
 
-<body class="m-0 p-0 box-border font-sans flex h-screen bg-gray-100">
+<body class="flex h-screen bg-gray-100 font-sans">
 
-    <?php include 'sidebar.php'; ?>
+<?php include "sidebar.php"; ?>
 
-    <div class="flex-1 p-8 overflow-y-auto">
-        <div class="mb-8 bg-gradient-to-r from-indigo-500 to-purple-600 p-8 rounded-lg shadow-lg relative overflow-hidden">
-            <div class="absolute -top-1/2 -right-1/2 w-96 h-96 bg-white/10 rounded-full"></div>
-            <h2 class="text-white text-4xl font-bold relative z-10 m-0 drop-shadow">📋 Daftar Warning</h2>
-            <p class="text-white/90 text-sm relative z-10 mt-2">Kelola dan pantau semua peringatan pengguna</p>
-        </div>
+<div class="flex-1 p-8 overflow-y-auto">
 
-        <div class="flex justify-end mb-2">
-            <button onclick="toggleAllMasks()" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded transition">
-                 Buka/Tutup Semua Sensor
-            </button>
-        </div>
-
-        <table class="border-collapse w-full bg-white shadow rounded-lg overflow-hidden">
-            <thead class="bg-slate-700 text-white">
-                <tr>
-                    <th class="p-3 border border-gray-600 text-left font-bold">ID</th>
-                    <th class="p-3 border border-gray-600 text-left font-bold">Author</th>
-                    <th class="p-3 border border-gray-600 text-left font-bold">User ID</th>
-                    <th class="p-3 border border-gray-600 text-left font-bold">Nama Group</th>
-                    <th class="p-3 border border-gray-600 text-center font-bold">Count</th>
-                    <th class="p-3 border border-gray-600 text-left font-bold">Last Warning</th>
-                    <th class="p-3 border border-gray-600 text-left font-bold w-1/4">Message (Sensor)</th>
-                    <th class="p-3 border border-gray-600 text-left font-bold">Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-            <?php
-            if ($result->num_rows > 0) {
-                while ($row = $result->fetch_assoc()) {
-                    
-                    // ID unik untuk JS
-                    $real_id = "real_" . $row['id'];
-                    $mask_id = "mask_" . $row['id'];
-                    
-                    $safe_message = htmlspecialchars($row['message']);
-                    
-                    // Buat string bintang sepanjang pesan asli (maksimal 20 bintang biar rapi)
-                    $msg_length = strlen($safe_message);
-                    $stars = str_repeat("*", ($msg_length > 30 ? 30 : $msg_length)); 
-                    if ($msg_length > 30) $stars .= "..."; 
-
-                    echo "<tr class='hover:bg-gray-50 border-b border-gray-200'>
-                        <td class='p-3 border-r border-gray-200 text-left'>{$row['id']}</td>
-                        <td class='p-3 border-r border-gray-200 text-left'>{$row['author']}</td>
-                        <td class='p-3 border-r border-gray-200 text-left text-xs'>{$row['user_id']}</td>
-                        <td class='p-3 border-r border-gray-200 text-left text-sm'><strong>{$row['group_name']}</strong></td>
-                        <td class='p-3 border-r border-gray-200 text-center'>{$row['warning_count']}</td>
-                        <td class='p-3 border-r border-gray-200 text-left text-xs'>{$row['last_warning_at']}</td>
-                        
-                        <td class='p-3 border-r border-gray-200 text-left cursor-pointer select-none' onclick='toggleText(\"{$row['id']}\")'>
-                            
-                            <span id='$mask_id' class='font-mono text-gray-400 font-bold text-lg tracking-widest'>
-                                $stars
-                            </span>
-                            
-                            <span id='$real_id' class='hidden text-gray-800 font-medium bg-yellow-50 px-2 py-1 rounded border border-yellow-200'>
-                                $safe_message
-                            </span>
-                            
-                            <div class='text-[10px] text-gray-400 mt-1 italic'>(Klik untuk lihat)</div>
-                        </td>
-
-                        <td class='p-3 text-left'>
-                            <div class='flex gap-1'>
-                                <a class='px-3 py-1 text-xs bg-blue-500 hover:bg-blue-600 text-white rounded transition' href='edit.php?id={$row['id']}'>Edit</a>
-                                <a class='px-3 py-1 text-xs bg-red-500 hover:bg-red-600 text-white rounded transition' href='delete.php?id={$row['id']}' onclick=\"return confirm('Yakin mau hapus data ini?');\">Del</a>
-                            </div>
-                        </td>
-                    </tr>";
-                }
-            } else {
-                echo "<tr><td colspan='8' class='text-center p-4 text-gray-500'>Tidak ada data warning.</td></tr>";
-            }
-            $conn->close();
-            ?>
-            </tbody>
-        </table>
+    <div class="mb-8 bg-gradient-to-r from-indigo-500 to-purple-600 p-8 rounded-lg shadow">
+        <h2 class="text-white text-3xl font-bold">Daftar Warning</h2>
+        <p class="text-white/80 text-sm mt-2">
+            Jam lokal Anda (WIB): <span id="localClock"></span>
+        </p>
     </div>
 
-    <script>
-        // Fungsi Toggle per pesan
-        function toggleText(id) {
-            const maskEl = document.getElementById('mask_' + id);
-            const realEl = document.getElementById('real_' + id);
+    <div class="flex justify-end mb-3">
+        <button onclick="toggleAllMasks()"
+            class="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded text-sm font-semibold">
+            Buka / Tutup Semua Pesan
+        </button>
+    </div>
 
-            if (realEl.classList.contains('hidden')) {
-                // Tampilkan pesan asli
-                maskEl.classList.add('hidden');
-                realEl.classList.remove('hidden');
-            } else {
-                // Sembunyikan lagi (kembali ke bintang)
-                maskEl.classList.remove('hidden');
-                realEl.classList.add('hidden');
+    <table class="w-full bg-white shadow rounded-lg overflow-hidden text-sm">
+        <thead class="bg-slate-700 text-white">
+            <tr>
+                <th class="p-3 text-left">No</th>
+                <th class="p-3 text-left">Author</th>
+                <th class="p-3 text-left">User ID</th>
+                <th class="p-3 text-left">Group</th>
+                <th class="p-3 text-center">Count</th>
+                <th class="p-3 text-left">Last Warning (WIB)</th>
+                <th class="p-3 text-left w-1/3">Message</th>
+                <th class="p-3 text-left">Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+        <?php
+        $no = 1;
+        while ($row = $result->fetch_assoc()):
+            $safeMsg = htmlspecialchars($row["message"]);
+            $stars = str_repeat("*", min(strlen($safeMsg), 30)) . (strlen($safeMsg) > 30 ? "..." : "");
+        ?>
+            <tr class="border-b hover:bg-gray-50">
+                <td class="p-3 text-center font-semibold"><?= $no ?></td>
+                <td class="p-3"><?= htmlspecialchars($row["author"]) ?></td>
+                <td class="p-3 text-xs"><?= htmlspecialchars($row["user_id"]) ?></td>
+
+                <td class="p-3 font-semibold text-indigo-600"
+                    data-group-id="<?= htmlspecialchars($row["group_id"]) ?>">
+                    Loading...
+                </td>
+
+                <td class="p-3 text-center"><?= (int)$row["warning_count"] ?></td>
+
+                <!-- VISUAL TIME FIX -->
+                <td class="p-3 text-xs warning-time"
+                    data-time="<?= htmlspecialchars($row["last_warning_at"]) ?>">
+                    Loading...
+                </td>
+
+                <td class="p-3 cursor-pointer select-none" onclick="toggleText(<?= $row["id"] ?>)">
+                    <span id="mask_<?= $row["id"] ?>" class="font-mono text-gray-400"><?= $stars ?></span>
+                    <span id="real_<?= $row["id"] ?>"
+                          class="hidden bg-yellow-50 px-2 py-1 rounded border">
+                        <?= $safeMsg ?>
+                    </span>
+                </td>
+
+                <td class="p-3">
+                    <a href="edit.php?id=<?= $row["id"] ?>"
+                       class="px-2 py-1 bg-blue-500 text-white rounded text-xs">Edit</a>
+                    <a href="delete.php?id=<?= $row["id"] ?>"
+                       onclick="return confirm('Yakin hapus?')"
+                       class="px-2 py-1 bg-red-500 text-white rounded text-xs">Del</a>
+                </td>
+            </tr>
+        <?php
+            $no++;
+        endwhile;
+        ?>
+        </tbody>
+    </table>
+</div>
+
+<!-- =============================
+     DATA PHP → JS
+============================= -->
+<script>
+const USED_GROUP_IDS = <?= json_encode($groupIds, JSON_UNESCAPED_UNICODE) ?>;
+</script>
+
+<script>
+/* =============================
+   JAM LOKAL USER (WIB)
+============================= */
+function updateClock() {
+    const now = new Date();
+    document.getElementById("localClock").textContent =
+        now.toLocaleTimeString("id-ID", { timeZone: "Asia/Jakarta" });
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+/* =============================
+   LOAD GROUP NAMES
+============================= */
+const API_URL = "https://bwaha.004090.xyz/api/default/groups";
+const API_KEY = "lewishamilton";
+const USED_SET = new Set(USED_GROUP_IDS);
+
+(async function loadGroups() {
+    try {
+        const res = await fetch(API_URL, {
+            headers: {
+                "X-Api-Key": API_KEY,
+                "Accept": "application/json"
             }
-        }
+        });
 
-        // Fungsi Buka/Tutup Semua
-        function toggleAllMasks() {
-            // Cek kondisi baris pertama untuk tentukan mau buka semua atau tutup semua
-            const allMasks = document.querySelectorAll('[id^="mask_"]');
-            const allReals = document.querySelectorAll('[id^="real_"]');
-            
-            // Jika elemen pertama tersembunyi (berarti sedang menampilkan pesan asli), maka kita tutup semua
-            const shouldClose = allMasks[0] && allMasks[0].classList.contains('hidden');
+        if (!res.ok) return;
 
-            if (shouldClose) {
-                // Tutup Semua (Show Stars)
-                allMasks.forEach(el => el.classList.remove('hidden'));
-                allReals.forEach(el => el.classList.add('hidden'));
-            } else {
-                // Buka Semua (Show Text)
-                allMasks.forEach(el => el.classList.add('hidden'));
-                allReals.forEach(el => el.classList.remove('hidden'));
+        const data = await res.json();
+        const map = {};
+
+        data.forEach(g => {
+            const gid = g?.id?._serialized || g?.id;
+            if (USED_SET.has(gid)) {
+                map[gid] = g.name || g.subject || gid;
             }
-        }
-    </script>
+        });
+
+        document.querySelectorAll("[data-group-id]").forEach(td => {
+            const gid = td.dataset.groupId;
+            td.textContent = map[gid] || "Unknown Group";
+        });
+    } catch (e) {
+        console.error(e);
+    }
+})();
+
+/* =============================
+   KONVERSI WAKTU → WIB (VISUAL)
+============================= */
+document.querySelectorAll(".warning-time").forEach(td => {
+    const raw = td.dataset.time;
+    if (!raw) return;
+
+    const date = new Date(raw.replace(" ", "T") + "Z");
+    if (isNaN(date)) {
+        td.textContent = raw;
+        return;
+    }
+
+    td.textContent = date.toLocaleString("id-ID", {
+        timeZone: "Asia/Jakarta",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+    });
+});
+
+/* =============================
+   MESSAGE TOGGLE
+============================= */
+function toggleText(id) {
+    document.getElementById("mask_" + id)?.classList.toggle("hidden");
+    document.getElementById("real_" + id)?.classList.toggle("hidden");
+}
+
+function toggleAllMasks() {
+    const masks = document.querySelectorAll('[id^="mask_"]');
+    const reals = document.querySelectorAll('[id^="real_"]');
+    const open = masks[0]?.classList.contains("hidden");
+
+    masks.forEach(m => m.classList.toggle("hidden", !open));
+    reals.forEach(r => r.classList.toggle("hidden", open));
+}
+</script>
 
 </body>
 </html>

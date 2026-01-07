@@ -1,17 +1,29 @@
 <?php
-session_start(); // Tambahkan session start agar tidak error saat ambil nama user di sidebar
-include __DIR__ . '/connection.php';
+session_start();
 
-// --- QUERY DATABASE ---
-$sql = "SELECT w.group_id, g.group_name 
-    FROM (SELECT DISTINCT group_id FROM warnings) w
-    LEFT JOIN `groups` g ON w.group_id = g.group_id
-    ORDER BY w.group_id";
-$result = $conn->query($sql);
+// Cek Login (Opsional, sesuaikan dengan kebutuhan)
+// if (!isset($_SESSION["user_id"])) { header("Location: login.php"); exit(); }
 
-if (!$result) {
-    die("Query Error: " . $conn->error);
+// =============================
+// DB CONNECTION
+// =============================
+require __DIR__ . "/connection.php";
+
+// =============================
+// AMBIL GROUP_ID DARI WARNINGS
+// =============================
+$groupIds = [];
+
+$sql = "SELECT DISTINCT group_id FROM warnings WHERE group_id IS NOT NULL AND group_id != ''";
+$res = $conn->query($sql);
+
+if ($res) {
+    while ($row = $res->fetch_assoc()) {
+        $groupIds[] = $row["group_id"];
+    }
 }
+
+$conn->close();
 ?>
 <!doctype html>
 <html lang="en">
@@ -20,7 +32,7 @@ if (!$result) {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <title>Groups - Dashboard</title>
+    <title>Test Groups - Dashboard</title>
 </head>
 
 <body class="m-0 p-0 box-border font-sans flex h-screen bg-gray-100">
@@ -28,104 +40,171 @@ if (!$result) {
     <?php include 'sidebar.php'; ?>
 
     <div class="flex-1 p-8 overflow-y-auto">
+
         <div
             class="mb-8 bg-gradient-to-r from-indigo-500 to-purple-600 p-8 rounded-lg shadow-lg relative overflow-hidden">
             <div class="absolute -top-1/2 -right-1/2 w-96 h-96 bg-white/10 rounded-full"></div>
-            <h2 class="text-white text-4xl font-bold relative z-10 m-0 drop-shadow">📁 Manajemen Groups</h2>
-            <p class="text-white/90 text-sm relative z-10 mt-2">Kelola dan pantau semua grup pengguna</p>
+            <h2 class="text-white text-4xl font-bold relative z-10 m-0 drop-shadow">🔍 Test Groups Data</h2>
+            <p class="text-white/90 text-sm relative z-10 mt-2">Filter grup WAHA berdasarkan data warning di database
+            </p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
-            <div class="bg-white p-5 rounded shadow">
-                <div class="text-gray-700 text-sm">Total Groups</div>
-                <?php
-                $count_sql = "SELECT COUNT(DISTINCT group_id) as total FROM warnings";
-                $count_result = $conn->query($count_sql);
-                $count_row = $count_result->fetch_assoc();
-                echo '<div class="text-3xl font-bold text-indigo-500 mt-2">' . $count_row['total'] . '</div>';
-                ?>
+        <div class="bg-white rounded-lg shadow-md p-6">
+
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                <div class="text-gray-700">
+                    <span class="font-semibold text-lg">Total Group ID di DB:</span>
+                    <span class="bg-indigo-100 text-indigo-800 text-sm font-bold px-3 py-1 rounded-full ml-2">
+                        <?= count($groupIds) ?>
+                    </span>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <span id="status" class="text-sm text-gray-500 italic">Status: Idle</span>
+                    <button onclick="loadGroups()"
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition shadow-md flex items-center gap-2">
+                        🔄 Load Data
+                    </button>
+                </div>
             </div>
-            <div class="bg-white p-5 rounded shadow">
-                <div class="text-gray-700 text-sm">Total Warnings</div>
-                <?php
-                $warning_sql = "SELECT COUNT(*) as total FROM warnings";
-                $warning_result = $conn->query($warning_sql);
-                $warning_row = $warning_result->fetch_assoc();
-                echo '<div class="text-3xl font-bold text-indigo-500 mt-2">' . $warning_row['total'] . '</div>';
-                ?>
+
+            <div class="overflow-hidden border border-gray-200 rounded-lg">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="bg-slate-700 text-white uppercase text-xs">
+                        <tr>
+                            <th class="px-6 py-4 font-bold w-16 text-center">#</th>
+                            <th class="px-6 py-4 font-bold">Group ID</th>
+                            <th class="px-6 py-4 font-bold">Group Name (Live API)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="group-table" class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td colspan="3" class="px-6 py-8 text-center text-gray-400 italic">
+                                Klik tombol "Load Data" untuk mengambil data grup...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
+
         </div>
-
-        <table class="border-collapse w-full bg-white shadow">
-            <tr>
-                <th class="p-3 border border-gray-300 text-left bg-slate-700 text-white font-bold">No</th>
-                <th class="p-3 border border-gray-300 text-left bg-slate-700 text-white font-bold">Group ID</th>
-                <th class="p-3 border border-gray-300 text-left bg-slate-700 text-white font-bold">Nama Group</th>
-                <th class="p-3 border border-gray-300 text-left bg-slate-700 text-white font-bold">Total Warnings</th>
-                <th class="p-3 border border-gray-300 text-left bg-slate-700 text-white font-bold">Avg Warning Per User
-                </th>
-                <th class="p-3 border border-gray-300 text-left bg-slate-700 text-white font-bold">Last Warning</th>
-                <th class="p-3 border border-gray-300 text-left bg-slate-700 text-white font-bold">Aksi</th>
-            </tr>
-
-            <?php
-            if ($result->num_rows > 0) {
-                $no = 1;
-                while ($row = $result->fetch_assoc()) {
-                    $group_id = $row['group_id'];
-                    $group_name = $row['group_name'] ?? 'N/A';
-
-                    // Get warning count for this group
-                    $count_sql = "SELECT COUNT(*) as total FROM warnings WHERE group_id = ?";
-                    $count_stmt = $conn->prepare($count_sql);
-                    $count_stmt->bind_param("s", $group_id);
-                    $count_stmt->execute();
-                    $count_result = $count_stmt->get_result();
-                    $count_data = $count_result->fetch_assoc();
-                    $total_warnings = $count_data['total'];
-
-                    // Get unique users count for this group
-                    $users_sql = "SELECT COUNT(DISTINCT user_id) as total FROM warnings WHERE group_id = ?";
-                    $users_stmt = $conn->prepare($users_sql);
-                    $users_stmt->bind_param("s", $group_id);
-                    $users_stmt->execute();
-                    $users_result = $users_stmt->get_result();
-                    $users_data = $users_result->fetch_assoc();
-                    $total_users = $users_data['total'];
-
-                    // Calculate average
-                    $avg_warning = $total_users > 0 ? round($total_warnings / $total_users, 2) : 0;
-
-                    // Get last warning date
-                    $last_sql = "SELECT last_warning_at FROM warnings WHERE group_id = ? ORDER BY last_warning_at DESC LIMIT 1";
-                    $last_stmt = $conn->prepare($last_sql);
-                    $last_stmt->bind_param("s", $group_id);
-                    $last_stmt->execute();
-                    $last_result = $last_stmt->get_result();
-                    $last_data = $last_result->fetch_assoc();
-                    $last_warning = $last_data['last_warning_at'] ?? 'N/A';
-
-                    echo "<tr class='hover:bg-gray-100'>
-                    <td class='p-3 border border-gray-300 text-left'>$no</td>
-                    <td class='p-3 border border-gray-300 text-left'><strong>$group_id</strong></td>
-                    <td class='p-3 border border-gray-300 text-left'>$group_name</td>
-                    <td class='p-3 border border-gray-300 text-left'>$total_warnings</td>
-                    <td class='p-3 border border-gray-300 text-left'>$avg_warning</td>
-                    <td class='p-3 border border-gray-300 text-left'>$last_warning</td>
-                    <td class='p-3 border border-gray-300 text-left'>
-                        <a class='inline-block px-3 py-1 text-sm bg-blue-500 text-white rounded transition-opacity duration-300 hover:opacity-80 mr-1 no-underline' href='edit_group.php?id=$group_id'>Edit</a>
-                    </td>
-                </tr>";
-                    $no++;
-                }
-            } else {
-                echo "<tr><td colspan='7' class='text-center p-8'><strong>Tidak ada data group</strong></td></tr>";
-            }
-
-            $conn->close();
-            ?>
-        </table>
     </div>
+
+    <script>
+        const USED_GROUP_IDS = <?= json_encode($groupIds, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+    </script>
+
+    <script>
+        const API_URL = "https://bwaha.004090.xyz/api/default/groups";
+        const API_KEY = "lewishamilton"; // Sesuaikan jika perlu ganti key
+
+        const USED_SET = new Set(USED_GROUP_IDS);
+
+        async function loadGroups() {
+            const statusEl = document.getElementById("status");
+            const tbody = document.getElementById("group-table");
+
+            statusEl.textContent = "Status: Memuat data...";
+            statusEl.className = "text-sm text-blue-600 font-semibold animate-pulse";
+
+            // Tampilkan loading di tabel
+            tbody.innerHTML = `
+            <tr>
+                <td colspan="3" class="px-6 py-12 text-center">
+                    <div class="flex justify-center items-center gap-3">
+                        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                        <span class="text-gray-500">Sedang mengambil data dari API...</span>
+                    </div>
+                </td>
+            </tr>`;
+
+            try {
+                const res = await fetch(API_URL, {
+                    headers: {
+                        "X-Api-Key": API_KEY,
+                        "Accept": "application/json"
+                    }
+                });
+
+                if (!res.ok) {
+                    statusEl.textContent = `Error: ${res.status}`;
+                    statusEl.className = "text-sm text-red-600 font-bold";
+                    tbody.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="px-6 py-8 text-center text-red-500 font-semibold">
+                            ❌ Gagal mengambil data (HTTP ${res.status})
+                        </td>
+                    </tr>`;
+                    return;
+                }
+
+                const data = await res.json();
+                statusEl.textContent = "Status: Selesai";
+                statusEl.className = "text-sm text-green-600 font-bold";
+
+                tbody.innerHTML = ""; // Bersihkan tabel
+
+                let index = 0;
+
+                data.forEach(group => {
+                    // Normalisasi ID (kadang _serialized, kadang string biasa)
+                    const groupId = group?.id?._serialized || group?.id || null;
+
+                    if (!groupId) return;
+
+                    // FILTER: Hanya tampilkan jika ID ada di database warnings
+                    if (!USED_SET.has(groupId)) return;
+
+                    const groupName = group?.name || group?.subject || groupId;
+
+                    index++;
+
+                    const tr = document.createElement("tr");
+                    tr.className = "hover:bg-gray-50 transition duration-150";
+
+                    tr.innerHTML = `
+                    <td class="px-6 py-4 text-center font-medium text-gray-900 border-r border-gray-100">${index}</td>
+                    <td class="px-6 py-4 font-mono text-xs text-blue-600 font-bold break-all border-r border-gray-100 select-all">
+                        ${groupId}
+                    </td>
+                    <td class="px-6 py-4 font-semibold text-gray-800">
+                        ${escapeHtml(groupName)}
+                    </td>
+                `;
+                    tbody.appendChild(tr);
+                });
+
+                if (index === 0) {
+                    tbody.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="px-6 py-8 text-center text-gray-500">
+                            ⚠️ Tidak ada grup aktif yang cocok dengan database warnings.
+                        </td>
+                    </tr>`;
+                }
+
+            } catch (err) {
+                console.error(err);
+                statusEl.textContent = "Status: Error Koneksi";
+                statusEl.className = "text-sm text-red-600 font-bold";
+                tbody.innerHTML = `
+                <tr>
+                    <td colspan="3" class="px-6 py-8 text-center text-red-600">
+                        ❌ Terjadi kesalahan JS / CORS (Cek Console)
+                    </td>
+                </tr>`;
+            }
+        }
+
+        // Mencegah XSS sederhana
+        function escapeHtml(str) {
+            return String(str)
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;");
+        }
+    </script>
 
 </body>
 

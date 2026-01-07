@@ -29,31 +29,7 @@ $groups_result = $conn->query($groups_sql);
 <body class="bg-gray-100 h-screen overflow-hidden">
 
     <div class="flex h-full">
-        <!-- Sidebar -->
-        <aside class="w-64 bg-slate-800 text-white overflow-y-auto shadow-lg">
-            <div class="border-b border-slate-700 p-6 text-center">
-                <h1 class="text-2xl font-bold">Dashboard</h1>
-            </div>
-            <nav class="py-6">
-                <ul class="space-y-1">
-                    <li><a href="index.php"
-                            class="block px-6 py-3 hover:bg-slate-700 border-l-4 border-transparent hover:border-blue-400 transition">📊
-                            Daftar Warning</a></li>
-                    <li><a href="#"
-                            class="block px-6 py-3 hover:bg-slate-700 border-l-4 border-transparent hover:border-blue-400 transition">👥
-                            User Management</a></li>
-                    <li><a href="groups.php"
-                            class="block px-6 py-3 hover:bg-slate-700 border-l-4 border-transparent hover:border-blue-400 transition">📁
-                            Groups</a></li>
-                    <li><a href="#"
-                            class="block px-6 py-3 hover:bg-slate-700 border-l-4 border-transparent hover:border-blue-400 transition">⚙️
-                            Bot Settings</a></li>
-                    <li><a href="#"
-                            class="block px-6 py-3 hover:bg-slate-700 border-l-4 border-transparent hover:border-blue-400 transition">📋
-                            Reports</a></li>
-                </ul>
-            </nav>
-        </aside>
+        <?php include __DIR__ . '/sidebar.php'; ?>
 
         <!-- Main Content -->
         <main class="flex-1 overflow-y-auto p-8">
@@ -77,13 +53,13 @@ $groups_result = $conn->query($groups_sql);
 
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-2">User ID *</label>
-                        <input type="text" name="user_id" value="<?= htmlspecialchars($data['user_id']) ?>" required
+                        <input type="text" name="user_id" value="<?= htmlspecialchars($data['user_id']) ?>" readonly
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200">
                     </div>
 
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-2">Group ID *</label>
-                        <select name="group_id" required
+                        <select name="group_id" readonly
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200">
                             <option value="">-- Pilih Group --</option>
                             <?php
@@ -100,14 +76,14 @@ $groups_result = $conn->query($groups_sql);
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-2">Warning Count *</label>
                         <input type="number" name="warning_count"
-                            value="<?= htmlspecialchars($data['warning_count']) ?>" required
+                            value="<?= htmlspecialchars($data['warning_count']) ?>" readonly
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200">
                     </div>
 
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-2">Last Warning At *</label>
                         <input type="datetime-local" name="last_warning_at"
-                            value="<?= date('Y-m-d\TH:i', strtotime($data['last_warning_at'])) ?>" required
+                            value="<?= date('Y-m-d\TH:i', strtotime($data['last_warning_at'])) ?>" readonly
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200">
                     </div>
 
