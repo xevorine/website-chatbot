@@ -32,6 +32,10 @@ $conn->close();
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+        integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
     <title>Test Groups - Dashboard</title>
 </head>
 
@@ -39,18 +43,17 @@ $conn->close();
 
     <?php include 'sidebar.php'; ?>
 
-    <div class="flex-1 p-8 overflow-y-auto">
+    <div class="flex-1 overflow-y-auto">
 
-        <div
-            class="mb-8 bg-gradient-to-r from-indigo-500 to-purple-600 p-8 rounded-lg shadow-lg relative overflow-hidden">
-            <div class="absolute -top-1/2 -right-1/2 w-96 h-96 bg-white/10 rounded-full"></div>
-            <h2 class="text-white text-4xl font-bold relative z-10 m-0 drop-shadow">🔍 Test Groups Data</h2>
-            <p class="text-white/90 text-sm relative z-10 mt-2">Filter grup WAHA berdasarkan data warning di database
+        <div class="bg-[#8EA7E9] p-8 shadow flex items-center justify-between">
+            <p class="text-white font-bold text-xl">Groups List</h2>
+            <p class="text-white/80 text-sm">
+                Menampilkan daftar Groups
             </p>
         </div>
 
-        <div class="bg-white rounded-lg shadow-md p-6">
 
+        <div class="p-6">
             <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                 <div class="text-gray-700">
                     <span class="font-semibold text-lg">Total Group ID di DB:</span>
@@ -61,10 +64,10 @@ $conn->close();
 
                 <div class="flex items-center gap-4">
                     <span id="status" class="text-sm text-gray-500 italic">Status: Idle</span>
-                    <button onclick="loadGroups()"
+                    <!-- <button onclick="loadGroups()"
                         class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition shadow-md flex items-center gap-2">
                         🔄 Load Data
-                    </button>
+                    </button> -->
                 </div>
             </div>
 
@@ -204,6 +207,10 @@ $conn->close();
                 .replaceAll(">", "&gt;")
                 .replaceAll('"', "&quot;");
         }
+    </script>
+
+    <script>
+        window.onload = () => loadGroups();
     </script>
 
 </body>

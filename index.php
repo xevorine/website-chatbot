@@ -44,6 +44,7 @@ while ($r = $q->fetch_assoc()) {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <title>Dashboard Warning</title>
 </head>
 
@@ -51,83 +52,109 @@ while ($r = $q->fetch_assoc()) {
 
 <?php include "sidebar.php"; ?>
 
-<div class="flex-1 p-8 overflow-y-auto">
+<div class="flex-1 overflow-y-auto">
 
-    <div class="mb-8 bg-gradient-to-r from-indigo-500 to-purple-600 p-8 rounded-lg shadow">
-        <h2 class="text-white text-3xl font-bold">Daftar Warning</h2>
-        <p class="text-white/80 text-sm mt-2">
-            Jam lokal Anda (WIB): <span id="localClock"></span>
-        </p>
+<div class="bg-[#8EA7E9] p-8 shadow flex items-center justify-between mb-8">
+            <p class="text-white font-bold text-xl">Daftar Warning</h2>
+    <p class="text-white/80 text-sm">
+        Jam lokal Anda (WIB): <span id="localClock"></span>
+    </p>
     </div>
 
-    <div class="flex justify-end mb-3">
+<div  class="px-8">
+
+    <!-- <div class="flex justify-end mb-3">
         <button onclick="toggleAllMasks()"
             class="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded text-sm font-semibold">
             Buka / Tutup Semua Pesan
         </button>
+    </div> -->
+
+<section class=" px-4 mx-auto">
+    <div class="flex flex-col mt-6">
+        <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+            <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
+                <div class="overflow-hidden border border-gray-200 md:rounded-lg">
+                    
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3.5 text-sm font-medium text-left text-gray-500">No</th>
+                                <th class="px-4 py-3.5 text-sm font-medium text-left text-gray-500">Author</th>
+                                <th class="px-4 py-3.5 text-sm font-medium text-left text-gray-500">User ID</th>
+                                <th class="px-4 py-3.5 text-sm font-medium text-left text-gray-500">Group</th>
+                                <th class="px-4 py-3.5 text-sm font-medium text-center text-gray-500">Count</th>
+                                <th class="px-4 py-3.5 text-sm font-medium text-left text-gray-500">Last Warning (WIB)</th>
+                                <th class="px-4 py-3.5 text-sm font-medium text-left text-gray-500">Message</th>
+                                <th class="px-4 py-3.5 text-sm font-medium text-left text-gray-500">Aksi</th>
+                            </tr>
+                        </thead>
+
+                        <tbody class="bg-white divide-y divide-gray-200">
+                        <?php
+                        $no = 1;
+                        while ($row = $result->fetch_assoc()):
+                            $safeMsg = htmlspecialchars($row["message"]);
+                            $stars = str_repeat("*", min(strlen($safeMsg), 30)) . (strlen($safeMsg) > 30 ? "..." : "");
+                        ?>
+                            <tr>
+                                <td class="px-4 py-4 text-sm font-medium text-gray-700 text-center"><?= $no ?></td>
+                                
+                                <td class="px-4 py-4 text-sm text-gray-700"><?= htmlspecialchars($row["author"]) ?></td>
+                                
+                                <td class="px-4 py-4 text-sm text-gray-500"><?= htmlspecialchars($row["user_id"]) ?></td>
+
+                                <td class="px-4 py-4 text-sm font-semibold text-indigo-600"
+                                    data-group-id="<?= htmlspecialchars($row["group_id"]) ?>">
+                                    Loading...
+                                </td>
+
+                                <td class="px-4 py-4 text-sm text-center"><?= (int)$row["warning_count"] ?></td>
+
+                                <td class="px-4 py-4 text-sm text-gray-500 warning-time"
+                                    data-time="<?= htmlspecialchars($row["last_warning_at"]) ?>">
+                                    Loading...
+                                </td>
+
+                                <td class="px-4 py-4 text-sm cursor-pointer select-none" onclick="toggleText(<?= $row["id"] ?>)">
+                                    <span id="mask_<?= $row["id"] ?>" class="font-mono text-gray-400"><?= $stars ?></span>
+                                    <span id="real_<?= $row["id"] ?>" class="hidden bg-yellow-50 px-2 py-1 rounded border">
+                                        <?= $safeMsg ?>
+                                    </span>
+                                </td>
+
+                                <td class="px-4 py-4 text-sm whitespace-nowrap">
+                                    <div class="flex items-center gap-x-3">
+                                        <a href="edit.php?id=<?= $row["id"] ?>" 
+                                           class="text-blue-600 hover:text-blue-900 text-xs font-medium">
+                                           Edit
+                                        </a>
+                                        <a href="delete.php?id=<?= $row["id"] ?>" 
+                                           onclick="return confirm('Yakin hapus?')"
+                                           class="text-red-600 hover:text-red-900 text-xs font-medium">
+                                           Del
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php
+                            $no++;
+                        endwhile;
+                        ?>
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+        </div>
     </div>
+</section>
 
-    <table class="w-full bg-white shadow rounded-lg overflow-hidden text-sm">
-        <thead class="bg-slate-700 text-white">
-            <tr>
-                <th class="p-3 text-left">No</th>
-                <th class="p-3 text-left">Author</th>
-                <th class="p-3 text-left">User ID</th>
-                <th class="p-3 text-left">Group</th>
-                <th class="p-3 text-center">Count</th>
-                <th class="p-3 text-left">Last Warning (WIB)</th>
-                <th class="p-3 text-left w-1/3">Message</th>
-                <th class="p-3 text-left">Aksi</th>
-            </tr>
-        </thead>
-        <tbody>
-        <?php
-        $no = 1;
-        while ($row = $result->fetch_assoc()):
-            $safeMsg = htmlspecialchars($row["message"]);
-            $stars = str_repeat("*", min(strlen($safeMsg), 30)) . (strlen($safeMsg) > 30 ? "..." : "");
-        ?>
-            <tr class="border-b hover:bg-gray-50">
-                <td class="p-3 text-center font-semibold"><?= $no ?></td>
-                <td class="p-3"><?= htmlspecialchars($row["author"]) ?></td>
-                <td class="p-3 text-xs"><?= htmlspecialchars($row["user_id"]) ?></td>
 
-                <td class="p-3 font-semibold text-indigo-600"
-                    data-group-id="<?= htmlspecialchars($row["group_id"]) ?>">
-                    Loading...
-                </td>
-
-                <td class="p-3 text-center"><?= (int)$row["warning_count"] ?></td>
-
-                <!-- VISUAL TIME FIX -->
-                <td class="p-3 text-xs warning-time"
-                    data-time="<?= htmlspecialchars($row["last_warning_at"]) ?>">
-                    Loading...
-                </td>
-
-                <td class="p-3 cursor-pointer select-none" onclick="toggleText(<?= $row["id"] ?>)">
-                    <span id="mask_<?= $row["id"] ?>" class="font-mono text-gray-400"><?= $stars ?></span>
-                    <span id="real_<?= $row["id"] ?>"
-                          class="hidden bg-yellow-50 px-2 py-1 rounded border">
-                        <?= $safeMsg ?>
-                    </span>
-                </td>
-
-                <td class="p-3">
-                    <a href="edit.php?id=<?= $row["id"] ?>"
-                       class="px-2 py-1 bg-blue-500 text-white rounded text-xs">Edit</a>
-                    <a href="delete.php?id=<?= $row["id"] ?>"
-                       onclick="return confirm('Yakin hapus?')"
-                       class="px-2 py-1 bg-red-500 text-white rounded text-xs">Del</a>
-                </td>
-            </tr>
-        <?php
-            $no++;
-        endwhile;
-        ?>
-        </tbody>
-    </table>
 </div>
+
+</div>
+
 
 <!-- =============================
      DATA PHP → JS

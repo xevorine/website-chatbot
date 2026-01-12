@@ -45,6 +45,10 @@ while ($row = $res_heatmap->fetch_assoc()) {
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+        integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
     <title>Analytics & Insight</title>
 </head>
 
@@ -53,14 +57,16 @@ while ($row = $res_heatmap->fetch_assoc()) {
     <div class="flex h-full">
         <?php include __DIR__ . '/sidebar.php'; ?>
 
-        <main class="flex-1 overflow-y-auto p-8">
+        <main class="flex-1 overflow-y-auto">
 
-            <div class="bg-gradient-to-r from-orange-500 to-red-600 p-8 rounded-lg shadow-lg text-white mb-8">
-                <h2 class="text-4xl font-bold">📈 Analytics & Insight</h2>
-                <p class="text-orange-100 mt-2">Analisa perilaku user dan grup secara visual</p>
+            <div class="bg-[#8EA7E9] p-8 shadow flex items-center justify-between">
+                <p class="text-white font-bold text-xl">Analytics & Insight</h2>
+                <p class="text-white/80 text-sm">
+                    Analisa perilaku user dan grup secara visual
+                </p>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
 
                 <div class="bg-white rounded-lg shadow p-6">
                     <h3 class="text-lg font-bold text-gray-700 mb-4 border-b pb-2">💀 Top 5 Toxic Users</h3>
@@ -121,10 +127,12 @@ while ($row = $res_heatmap->fetch_assoc()) {
                 </div>
             </div>
 
-            <div class="bg-white rounded-lg shadow p-6">
-                <h3 class="text-lg font-bold text-gray-700 mb-4">⏰ Jam Rawan Pelanggaran (WIB / GMT+7)</h3>
-                <div class="h-64">
-                    <canvas id="timeChart"></canvas>
+            <div class="p-8">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-bold text-gray-700 mb-4">⏰ Jam Rawan Pelanggaran (WIB / GMT+7)</h3>
+                    <div class="h-64">
+                        <canvas id="timeChart"></canvas>
+                    </div>
                 </div>
             </div>
 
@@ -132,46 +140,49 @@ while ($row = $res_heatmap->fetch_assoc()) {
     </div>
 
     <script>
-const rawData = <?php echo json_encode($heatmap_data); ?>;
+        const rawData = <?php echo json_encode($heatmap_data); ?>;
 
-// Ambil JAM SEKARANG dari browser (WIB user)
-const now = new Date();
-const currentHour = now.getHours(); // 0–23 WIB
+        // Ambil JAM SEKARANG dari browser (WIB user)
+        const now = new Date();
+        const currentHour = now.getHours(); // 0–23 WIB
 
-const labels = [];
-const dataPoints = [];
+        const labels = [];
+        const dataPoints = [];
 
-// Putar timeline agar sesuai jam sekarang
-for (let i = 0; i < 24; i++) {
-    const hour = (currentHour + i) % 24;
-    const label = hour.toString().padStart(2, '0') + ":00";
+        // Putar timeline agar sesuai jam sekarang
+        for (let i = 0; i < 24; i++) {
+            const hour = (currentHour + i) % 24;
+            const label = hour.toString().padStart(2, '0') + ":00";
 
-    labels.push(label);
-    dataPoints.push(rawData[hour] ?? 0);
-}
-
-const ctx = document.getElementById('timeChart');
-
-new Chart(ctx, {
-    type: 'bar',
-    data: {
-        labels: labels,
-        datasets: [{
-            label: 'Jumlah Warning (WIB Realtime)',
-            data: dataPoints,
-            borderWidth: 1,
-            borderRadius: 4
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: { beginAtZero: true }
+            labels.push(label);
+            dataPoints.push(rawData[hour] ?? 0);
         }
-    }
-});
-</script>
+
+        const ctx = document.getElementById('timeChart');
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Jumlah Warning (WIB Realtime)',
+                    data: dataPoints,
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    backgroundColor: 'rgba(249, 115, 22, 0.8)',   // ORANGE (Tailwind orange-500)
+                    borderColor: 'rgb(234, 88, 12)'               // ORANGE DARK
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    </script>
 
 </body>
+
 </html>
