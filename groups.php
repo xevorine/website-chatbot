@@ -48,7 +48,7 @@ $conn->close();
         <div class="bg-[#8EA7E9] p-8 shadow flex items-center justify-between">
             <p class="text-white font-bold text-xl">Groups List</h2>
             <p class="text-white/80 text-sm">
-                Menampilkan daftar Groups
+                Jam lokal Anda (WIB): <span id="localClock"></span>
             </p>
         </div>
 
@@ -72,14 +72,16 @@ $conn->close();
             </div>
 
             <div class="overflow-hidden border border-gray-200 rounded-lg">
-                <table class="w-full text-sm text-left text-gray-500">
-                    <thead class="bg-slate-700 text-white uppercase text-xs">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-4 font-bold w-16 text-center">#</th>
-                            <th class="px-6 py-4 font-bold">Group ID</th>
-                            <th class="px-6 py-4 font-bold">Group Name (Live API)</th>
+                            <th class="px-4 py-3.5 text-sm font-medium text-left text-gray-500">No</th>
+                            <th class="px-4 py-3.5 text-sm font-medium text-left text-gray-500">Group ID</th>
+                            <th class="px-4 py-3.5 text-sm font-medium text-left text-gray-500">Group Name (Live API)
+                            </th>
                         </tr>
                     </thead>
+
                     <tbody id="group-table" class="bg-white divide-y divide-gray-200">
                         <tr>
                             <td colspan="3" class="px-6 py-8 text-center text-gray-400 italic">
@@ -207,6 +209,14 @@ $conn->close();
                 .replaceAll(">", "&gt;")
                 .replaceAll('"', "&quot;");
         }
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById("localClock").textContent =
+                now.toLocaleTimeString("id-ID", { timeZone: "Asia/Jakarta" });
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
     </script>
 
     <script>

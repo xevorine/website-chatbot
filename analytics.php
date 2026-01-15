@@ -10,14 +10,25 @@ $sql_top_users = "SELECT MAX(author) as author, user_id, SUM(warning_count) as t
                   LIMIT 5";
 $res_top_users = $conn->query($sql_top_users);
 
-// --- 2. Query Top Groups ---
-$sql_top_groups = "SELECT g.group_name, w.group_id, COUNT(*) as total_events 
-                   FROM warnings w
-                   LEFT JOIN `groups` g ON w.group_id = g.group_id
-                   GROUP BY w.group_id 
+// --- 2. Query Top Groups (hanya ambil group_id dan count, nama akan diambil via API JS) ---
+$sql_top_groups = "SELECT group_id, COUNT(*) as total_events 
+                   FROM warnings 
+                   WHERE group_id IS NOT NULL AND group_id != ''
+                   GROUP BY group_id 
                    ORDER BY total_events DESC 
                    LIMIT 5";
 $res_top_groups = $conn->query($sql_top_groups);
+
+// Siapkan data untuk JavaScript
+$top_groups_data = [];
+if ($res_top_groups && $res_top_groups->num_rows > 0) {
+    while ($g = $res_top_groups->fetch_assoc()) {
+        $top_groups_data[] = [
+            'group_id' => $g['group_id'],
+            'total_events' => (int)$g['total_events']
+        ];
+    }
+}
 
 // --- 3. Query Heatmap Jam (WIB / GMT+7) ---
 // Menggunakan DATE_ADD untuk kompabilitas maksimal (menambah 7 jam dari waktu server)
@@ -62,7 +73,7 @@ while ($row = $res_heatmap->fetch_assoc()) {
             <div class="bg-[#8EA7E9] p-8 shadow flex items-center justify-between">
                 <p class="text-white font-bold text-xl">Analytics & Insight</h2>
                 <p class="text-white/80 text-sm">
-                    Analisa perilaku user dan grup secara visual
+                    Jam lokal Anda (WIB): <span id="localClock"></span>
                 </p>
             </div>
 
@@ -104,26 +115,12 @@ while ($row = $res_heatmap->fetch_assoc()) {
 
                 <div class="bg-white rounded-lg shadow p-6">
                     <h3 class="text-lg font-bold text-gray-700 mb-4 border-b pb-2">📢 Grup Paling "Toxic"</h3>
-                    <ul class="space-y-4">
-                        <?php
-                        if ($res_top_groups && $res_top_groups->num_rows > 0) {
-                            while ($g = $res_top_groups->fetch_assoc()) {
-                                $width = min($g['total_events'] * 5, 100);
-                                echo "<li>";
-                                echo "<div class='flex justify-between mb-1'>";
-                                echo "<span class='font-semibold text-gray-700'>" . htmlspecialchars($g['group_name'] ?? $g['group_id']) . "</span>";
-                                echo "<span class='text-sm text-gray-500'>" . $g['total_events'] . " Warnings</span>";
-                                echo "</div>";
-                                echo "<div class='w-full bg-gray-200 rounded-full h-2.5'>";
-                                echo "<div class='bg-orange-500 h-2.5 rounded-full' style='width: {$width}%'></div>";
-                                echo "</div>";
-                                echo "</li>";
-                            }
-                        } else {
-                            echo "<p class='text-gray-400 text-center'>Belum ada data</p>";
-                        }
-                        ?>
-                    </ul>
+                    <div id="top-groups-container">
+                        <div class="flex justify-center items-center gap-3 py-8">
+                            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500"></div>
+                            <span class="text-gray-500">Memuat data grup...</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -140,6 +137,100 @@ while ($row = $res_heatmap->fetch_assoc()) {
     </div>
 
     <script>
+        // Data grup dari PHP (group_id dan total_events)
+        const TOP_GROUPS_DATA = <?php echo json_encode($top_groups_data); ?>;
+        
+        const API_URL = "https://bwaha.004090.xyz/api/default/groups";
+        const API_KEY = "lewishamilton";
+
+        // Fungsi untuk load nama grup dari API
+        async function loadGroupNames() {
+            const container = document.getElementById('top-groups-container');
+            
+            if (TOP_GROUPS_DATA.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-center py-4">Belum ada data</p>';
+                return;
+            }
+
+            try {
+                const res = await fetch(API_URL, {
+                    headers: {
+                        "X-Api-Key": API_KEY,
+                        "Accept": "application/json"
+                    }
+                });
+
+                let groupNameMap = {};
+
+                if (res.ok) {
+                    const apiData = await res.json();
+                    // Buat mapping group_id -> group_name
+                    apiData.forEach(group => {
+                        const groupId = group?.id?._serialized || group?.id || null;
+                        if (groupId) {
+                            groupNameMap[groupId] = group?.name || group?.subject || null;
+                        }
+                    });
+                }
+
+                // Cari max untuk persentase bar
+                const maxEvents = Math.max(...TOP_GROUPS_DATA.map(g => g.total_events));
+
+                // Render hasil
+                let html = '<ul class="space-y-4">';
+                TOP_GROUPS_DATA.forEach(g => {
+                    const groupName = groupNameMap[g.group_id] || g.group_id;
+                    const width = Math.min((g.total_events / maxEvents) * 100, 100);
+                    
+                    html += `
+                        <li>
+                            <div class="flex justify-between mb-1">
+                                <span class="font-semibold text-gray-700">${escapeHtml(groupName)}</span>
+                                <span class="text-sm text-gray-500">${g.total_events} Warnings</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                <div class="bg-orange-500 h-2.5 rounded-full" style="width: ${width}%"></div>
+                            </div>
+                        </li>
+                    `;
+                });
+                html += '</ul>';
+                
+                container.innerHTML = html;
+
+            } catch (err) {
+                console.error('Error loading group names:', err);
+                // Fallback: tampilkan dengan group_id jika API error
+                const maxEvents = Math.max(...TOP_GROUPS_DATA.map(g => g.total_events));
+                let html = '<ul class="space-y-4">';
+                TOP_GROUPS_DATA.forEach(g => {
+                    const width = Math.min((g.total_events / maxEvents) * 100, 100);
+                    html += `
+                        <li>
+                            <div class="flex justify-between mb-1">
+                                <span class="font-semibold text-gray-700">${escapeHtml(g.group_id)}</span>
+                                <span class="text-sm text-gray-500">${g.total_events} Warnings</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                <div class="bg-orange-500 h-2.5 rounded-full" style="width: ${width}%"></div>
+                            </div>
+                        </li>
+                    `;
+                });
+                html += '</ul>';
+                container.innerHTML = html;
+            }
+        }
+
+        // Escape HTML untuk mencegah XSS
+        function escapeHtml(str) {
+            return String(str)
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;");
+        }
+
         const rawData = <?php echo json_encode($heatmap_data); ?>;
 
         // Ambil JAM SEKARANG dari browser (WIB user)
@@ -181,6 +272,17 @@ while ($row = $res_heatmap->fetch_assoc()) {
                 }
             }
         });
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById("localClock").textContent =
+                now.toLocaleTimeString("id-ID", { timeZone: "Asia/Jakarta" });
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Load group names saat halaman dimuat
+        window.addEventListener('load', loadGroupNames);
     </script>
 
 </body>

@@ -88,33 +88,30 @@ if ($data) {
 
     <?php include 'sidebar.php'; ?>
 
-    <div class="flex-1 p-8 overflow-y-auto">
-        <div class="mb-8 p-6 rounded-lg clean-box flex items-center justify-between">
-            <div>
-                <h2 class="text-gray-800 text-3xl font-bold flex items-center gap-2">
-                    <i class="fa-solid fa-plug"></i> WAHA Connection
-                </h2>
-                <p class="text-gray-500 text-sm mt-1">
-                    Monitor status sesi WAHA dan proses pairing QR.
-                </p>
-            </div>
+
+    <div class="flex-1 overflow-y-auto">
+        <div class="bg-[#8EA7E9] p-8 shadow flex items-center justify-between mb-8">
+            <p class="text-white font-bold text-xl">Bot Setting</h2>
+            <p class="text-white/80 text-sm">
+                Jam lokal Anda (WIB): <span id="localClock"></span>
+            </p>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="grid grid-cols-1 m-8 lg:grid-cols-2 gap-8">
 
             <div class="clean-box rounded-lg p-6">
                 <div class="border-b pb-4 mb-4">
-                    <h3 class="section-title text-gray-800 flex items-center gap-2">
+                    <h3 class="section-title text-[#8EA7E9] flex items-center gap-2">
                         <i class="fa-solid fa-qrcode"></i> Scan QR Code
                     </h3>
                 </div>
 
                 <div id="view-loggedin"
                     class="<?= $isLoggedIn ? '' : 'hidden' ?> flex flex-col items-center justify-center py-10 text-center">
-                    <div class="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center mb-4">
-                        <i class="fa-solid fa-circle-check text-4xl text-gray-700"></i>
+                    <div class="w-20 h-20 bg-blue-200 rounded-full flex items-center justify-center mb-4">
+                        <i class="fa-solid fa-circle-check text-4xl text-emerald-500"></i>
                     </div>
-                    <h3 class="text-2xl font-bold text-gray-700">Bot Terhubung</h3>
+                    <h3 class="text-2xl font-bold text-emerald-500">Bot Terhubung</h3>
                     <p class="text-gray-500 mt-2">Sesi aktif dan siap menerima pesan.</p>
                 </div>
 
@@ -259,6 +256,14 @@ if ($data) {
 
             refreshBtn.addEventListener("click", refresh);
             refresh();
+
+            function updateClock() {
+                const now = new Date();
+                document.getElementById("localClock").textContent =
+                    now.toLocaleTimeString("id-ID", { timeZone: "Asia/Jakarta" });
+            }
+            setInterval(updateClock, 1000);
+            updateClock();
         </script>
 </body>
 
